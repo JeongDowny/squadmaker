@@ -1,0 +1,764 @@
+{
+  "meta": {
+    "version": "2026-04-01",
+    "purpose": "Squadmaker MVP implementation should iterate against explicit repository and application harness scenarios.",
+    "owner": "product-engineering"
+  },
+  "repositoryHarness": {
+    "goals": [
+      "문서 우선순위와 제품 규칙을 저장소에서 반복 검증 가능한 구조로 고정한다.",
+      "향후 기능 구현이 같은 시나리오 집합을 기준으로 움직이도록 만든다.",
+      "검증 명령과 제품 시나리오의 연결 상태를 한 번에 점검한다."
+    ],
+    "requiredDocs": [
+      "AGENTS.md",
+      "docs/PRODUCT_SENSE.md",
+      "docs/ARCHITECTURE.md",
+      "docs/DOMAIN.md",
+      "docs/FRONTEND.md",
+      "docs/DESIGN.md",
+      "docs/RELIABILITY.md",
+      "docs/SECURITY.md"
+    ],
+    "validationCommands": [
+      {
+        "id": "lint",
+        "command": "npm run lint",
+        "purpose": "Next.js, TypeScript, Tailwind surface linting",
+        "category": "static-check"
+      },
+      {
+        "id": "typecheck",
+        "command": "npm run typecheck",
+        "purpose": "Server/component/shared harness typing",
+        "category": "static-check"
+      },
+      {
+        "id": "build",
+        "command": "npm run build",
+        "purpose": "Application route/build integrity check",
+        "category": "build-check"
+      },
+      {
+        "id": "repo-harness",
+        "command": "npm run harness:repo",
+        "purpose": "Harness metadata and linked document validation",
+        "category": "harness-check"
+      },
+      {
+        "id": "test-harness",
+        "command": "npm run test:harness",
+        "purpose": "Repository harness suite entrypoint",
+        "category": "harness-check"
+      }
+    ],
+    "workflowRequirements": [
+      "비사소한 변경은 active exec-plan을 먼저 갱신한다.",
+      "UI 변경은 스크린샷 검증 체크리스트를 포함한다.",
+      "모든 비사소한 변경은 execution log를 남긴다.",
+      "테스트 통과라는 표현은 실제 기능 테스트와 하네스 검증을 구분해 기록한다."
+    ],
+    "handoffContract": {
+      "requiredScenarioFields": [
+        "priority",
+        "owner",
+        "status",
+        "linkedExecPlan",
+        "linkedDocs",
+        "assertions",
+        "manualChecks",
+        "expectedResults",
+        "verification.checks",
+        "verification.targets",
+        "handoff.dependsOn",
+        "handoff.deliverables",
+        "handoff.readyWhen",
+        "handoff.nextWorkstream"
+      ],
+      "requiredWorkArtifactNotes": [
+        "변경한 문서와 코드 경로",
+        "실행한 검증 명령",
+        "다음 작업자가 바로 이어받을 입력 조건",
+        "남은 blocker 또는 open question"
+      ]
+    },
+    "ciGate": {
+      "workflowPath": ".github/workflows/harness-ci.yml",
+      "requiredCommands": [
+        "npm run harness:repo",
+        "npm run test:harness",
+        "npm run typecheck",
+        "npm run lint",
+        "npm run build"
+      ]
+    },
+    "gates": [
+      "scenario id must be unique",
+      "linked docs must exist",
+      "formations must stay inside the MVP support list",
+      "application harness route must stay discoverable from the landing page",
+      "scenario handoff contract must be complete",
+      "scenario expected results and verification targets must be complete",
+      "test:harness is metadata validation, not the full future test suite"
+    ]
+  },
+  "applicationHarness": {
+    "route": "/harness",
+    "focusAreas": [
+      "예시 팀 진입과 첫 결과 이해",
+      "추천안 A/B/C 차이 해석",
+      "쿼터 편집 후 즉시 재계산 기대값",
+      "비로그인 저장 한도와 로그인 저장 가치 제안",
+      "모바일 우선 레이아웃 점검"
+    ],
+    "defaultViewportChecks": [
+      "390x844 mobile",
+      "1280x960 desktop"
+    ]
+  },
+  "supportedFormations": [
+    "4-4-2",
+    "4-3-3",
+    "4-2-3-1",
+    "3-5-2",
+    "3-4-3",
+    "4-1-4-1",
+    "4-5-1",
+    "4-3-1-2",
+    "4-1-2-1-2",
+    "3-4-1-2"
+  ],
+  "scenarios": [
+    {
+      "id": "example-team-first-result",
+      "title": "예시 팀으로 첫 결과 확인",
+      "stage": "onboarding",
+      "scenarioType": "happy-path",
+      "priority": "P1",
+      "owner": "frontend",
+      "status": "contract-ready",
+      "objective": "처음 방문한 사용자가 입력 없이 서비스 가치와 추천안 구조를 빠르게 이해한다.",
+      "linkedExecPlan": "docs/exec-plans/active/harness-foundation.md",
+      "inputs": {
+        "matchTitle": "토요 아침전",
+        "matchDate": "2026-04-04",
+        "quarterCount": 4,
+        "formations": ["4-3-3", "4-2-3-1", "4-4-2", "3-5-2"],
+        "playerCount": 15,
+        "notes": ["예시 팀 데이터로 첫 결과를 바로 보여주는 온보딩 진입"]
+      },
+      "assertions": [
+        "예시 팀으로 체험하기 진입점을 보여줘야 한다.",
+        "추천안 A/B/C가 공평성, 평균 점수 균형, 포지션 적합성 기준으로 구분되어 보여야 한다.",
+        "현재 쿼터의 필드 배치가 가장 먼저 읽히는 정보여야 한다."
+      ],
+      "expectedResults": {
+        "ui": [
+          "랜딩에서 예시 팀 CTA가 첫 화면 안에 보인다.",
+          "첫 결과 화면에 추천안 A/B/C 요약과 필드 배치 영역이 동시에 존재한다."
+        ],
+        "domain": [
+          "예시 팀 fixture만으로 추천 결과 진입이 가능해야 한다."
+        ],
+        "persistence": []
+      },
+      "manualChecks": [
+        "모바일에서 랜딩 상단 CTA가 첫 화면 안에서 읽힌다.",
+        "하네스 카드만 봐도 제품의 첫 결과 흐름을 이해할 수 있다.",
+        "링크된 문서를 따라가면 온보딩과 추천 규칙의 출처를 확인할 수 있다."
+      ],
+      "linkedDocs": [
+        "docs/product-specs/new-user-onboarding.md",
+        "docs/product-specs/formation-recommendation.md",
+        "docs/DESIGN.md"
+      ],
+      "verification": {
+        "checks": ["repo-harness", "typecheck", "build"],
+        "targets": [
+          {
+            "kind": "ui",
+            "path": "app/page.tsx",
+            "state": "existing",
+            "note": "랜딩 CTA와 제품 우선순위 표시"
+          },
+          {
+            "kind": "ui",
+            "path": "app/harness/page.tsx",
+            "state": "existing",
+            "note": "하네스 진입 및 계약 노출"
+          },
+          {
+            "kind": "ui",
+            "path": "app/matches/example/page.tsx",
+            "state": "planned",
+            "note": "예시 팀 체험 전용 결과 진입 화면"
+          }
+        ]
+      },
+      "handoff": {
+        "dependsOn": [
+          "랜딩에서 예시 팀 체험 CTA가 존재해야 한다.",
+          "추천안 카드와 필드 배치의 기본 정보 구조가 정의돼 있어야 한다."
+        ],
+        "deliverables": [
+          "예시 팀 진입점 UI",
+          "추천안 A/B/C 요약 카드",
+          "첫 결과 화면 와이어 또는 구현"
+        ],
+        "readyWhen": [
+          "입력 없이 첫 결과 진입 경로를 설명할 수 있다.",
+          "추천안 차이를 카드 레벨에서 읽을 수 있다."
+        ],
+        "nextWorkstream": "Workstream 2: Player pool and match setup"
+      }
+    },
+    {
+      "id": "match-setup-validation",
+      "title": "경기 생성 입력 검증",
+      "stage": "setup",
+      "scenarioType": "warning-path",
+      "priority": "P0",
+      "owner": "frontend",
+      "status": "contract-ready",
+      "objective": "필수 입력이 부족할 때 필드 단위 메시지와 다음 행동이 보여야 한다.",
+      "linkedExecPlan": "docs/exec-plans/active/harness-foundation.md",
+      "inputs": {
+        "matchTitle": "수요 저녁전",
+        "matchDate": "2026-04-07",
+        "quarterCount": 4,
+        "formations": ["4-4-2", "4-4-2", "4-3-3", "4-2-3-1"],
+        "playerCount": 10,
+        "notes": ["참가 선수 수 부족", "포지션 미지정 선수 포함 가능"]
+      },
+      "assertions": [
+        "입력 단계에서 부족한 항목을 필드 단위로 표시해야 한다.",
+        "일반 오류 문구 대신 어떤 입력이 부족한지 구체적으로 말해야 한다.",
+        "추천 계산으로 넘어가지 못하는 이유를 설명해야 한다."
+      ],
+      "expectedResults": {
+        "ui": [
+          "오류 메시지가 문제 필드 가까이에 노출된다.",
+          "추천 단계 진입 버튼 또는 CTA가 비활성 또는 안내 상태가 된다."
+        ],
+        "domain": [
+          "유효하지 않은 입력으로 추천 계산 함수가 호출되지 않는다."
+        ],
+        "persistence": []
+      },
+      "manualChecks": [
+        "모바일에서도 각 입력 오류가 해당 필드 가까이에 보인다.",
+        "사용자가 다음에 무엇을 고쳐야 하는지 바로 이해할 수 있다.",
+        "하네스 카드만 봐도 setup 단계의 blocker를 파악할 수 있다."
+      ],
+      "linkedDocs": [
+        "docs/product-specs/new-user-onboarding.md",
+        "docs/FRONTEND.md",
+        "docs/RELIABILITY.md"
+      ],
+      "verification": {
+        "checks": ["repo-harness", "test-harness", "typecheck"],
+        "targets": [
+          {
+            "kind": "ui",
+            "path": "app/matches/new/page.tsx",
+            "state": "planned",
+            "note": "경기 생성 입력 화면"
+          },
+          {
+            "kind": "domain",
+            "path": "lib/validation/match-setup.ts",
+            "state": "planned",
+            "note": "입력 유효성 검증 규칙"
+          }
+        ]
+      },
+      "handoff": {
+        "dependsOn": [
+          "경기 설정 폼 구조와 유효성 규칙이 정의돼 있어야 한다."
+        ],
+        "deliverables": [
+          "필수 입력 검증 규칙",
+          "필드 단위 오류 UI",
+          "추천 단계 진입 조건"
+        ],
+        "readyWhen": [
+          "부족한 입력 상태에서 명확한 오류가 표시된다.",
+          "유효한 입력으로만 다음 단계 진입이 가능하다."
+        ],
+        "nextWorkstream": "Workstream 2: Player pool and match setup"
+      }
+    },
+    {
+      "id": "lineup-generation-not-possible",
+      "title": "포메이션 배치 불가 이유 안내",
+      "stage": "recommendation",
+      "scenarioType": "failure-path",
+      "priority": "P0",
+      "owner": "domain",
+      "status": "contract-ready",
+      "objective": "선수 구성 때문에 현재 포메이션 배치가 어려울 때 이유와 대안을 함께 보여준다.",
+      "linkedExecPlan": "docs/exec-plans/active/harness-foundation.md",
+      "inputs": {
+        "matchTitle": "목요 야간전",
+        "matchDate": "2026-04-09",
+        "quarterCount": 3,
+        "formations": ["3-4-3", "3-4-3", "3-4-1-2"],
+        "playerCount": 13,
+        "notes": ["수비 자원이 부족한 선수 구성", "추천 엔진이 완전 배치를 만들기 어려운 상태"]
+      },
+      "assertions": [
+        "배치 불가만 보여주지 말고 부족한 이유를 구체적으로 설명해야 한다.",
+        "가능한 대안으로 포메이션 변경 또는 참가 선수 조정을 제시해야 한다.",
+        "가능하면 완전 실패보다 부분 결과 또는 경고 상태를 우선 검토해야 한다."
+      ],
+      "expectedResults": {
+        "ui": [
+          "배치 불가 메시지와 대안 행동이 함께 보인다."
+        ],
+        "domain": [
+          "엔진이 failure reason 또는 partial-quality 상태를 구조화된 값으로 반환한다.",
+          "부족한 포지션 또는 자원 정보가 함께 계산된다."
+        ],
+        "persistence": []
+      },
+      "manualChecks": [
+        "실패 메시지가 내부 기술 용어 없이 읽힌다.",
+        "대안 행동이 명확히 보인다.",
+        "하네스 카드만으로 recommendation failure 정책의 출처를 따라갈 수 있다."
+      ],
+      "linkedDocs": [
+        "docs/product-specs/formation-recommendation.md",
+        "docs/RELIABILITY.md",
+        "docs/ARCHITECTURE.md"
+      ],
+      "verification": {
+        "checks": ["repo-harness", "test-harness", "typecheck"],
+        "targets": [
+          {
+            "kind": "domain",
+            "path": "lib/recommendation/engine.ts",
+            "state": "planned",
+            "note": "추천 엔진과 실패 사유 계산"
+          },
+          {
+            "kind": "ui",
+            "path": "app/matches/[id]/page.tsx",
+            "state": "planned",
+            "note": "배치 불가 또는 부분 결과 메시지 표시"
+          }
+        ]
+      },
+      "handoff": {
+        "dependsOn": [
+          "추천 계산 입력 모델과 포지션 적합성 규칙이 정의돼 있어야 한다."
+        ],
+        "deliverables": [
+          "배치 불가 판정 규칙",
+          "부족 포지션 설명 UI",
+          "대안 제안 문구"
+        ],
+        "readyWhen": [
+          "배치 불가 원인이 코드와 UI에서 같은 기준으로 표시된다.",
+          "완전 실패와 부분 결과의 분기가 문서와 일치한다."
+        ],
+        "nextWorkstream": "Workstream 3: Recommendation engine"
+      }
+    },
+    {
+      "id": "quarter-editor-recalculation",
+      "title": "쿼터 교체 후 즉시 재계산",
+      "stage": "editing",
+      "scenarioType": "happy-path",
+      "priority": "P0",
+      "owner": "frontend",
+      "status": "contract-ready",
+      "objective": "감독이 한 쿼터에서 선수를 교체했을 때 어떤 값이 즉시 다시 계산되어야 하는지 명확히 고정한다.",
+      "linkedExecPlan": "docs/exec-plans/active/harness-foundation.md",
+      "inputs": {
+        "matchTitle": "수요 야간전",
+        "matchDate": "2026-04-08",
+        "quarterCount": 3,
+        "formations": ["4-3-3", "4-3-3", "4-2-3-1"],
+        "playerCount": 14,
+        "notes": ["모바일 두 번 탭 교체", "교체 후 즉시 메타데이터 반영"]
+      },
+      "assertions": [
+        "교체 후 선수별 총 출전 쿼터 수가 즉시 반영되어야 한다.",
+        "현재 쿼터 평균 점수와 전체 쿼터 평균 점수 분포가 즉시 갱신되어야 한다.",
+        "모바일에서는 두 번 탭 교체 흐름이 상태 텍스트와 함께 보여야 한다."
+      ],
+      "expectedResults": {
+        "ui": [
+          "교체 직후 필드 배치, 선택 상태, 메타데이터가 동시에 갱신된다."
+        ],
+        "domain": [
+          "재계산 함수가 출전 쿼터 수, 현재 쿼터 평균 점수, 전체 평균 점수 분포, 주포지션 일치율을 함께 반환한다."
+        ],
+        "persistence": [
+          "저장 전 화면 상태와 저장 대상 데이터의 계산 기준이 같아야 한다."
+        ]
+      },
+      "manualChecks": [
+        "편집 관련 메타데이터가 필드 배치 아래에서 바로 확인된다.",
+        "선택 상태와 취소 가능성이 텍스트로 드러난다.",
+        "모바일 폭에서 쿼터 탭과 카드가 터치 가능한 크기를 유지한다."
+      ],
+      "linkedDocs": [
+        "docs/product-specs/quarter-lineup-editor.md",
+        "docs/FRONTEND.md",
+        "docs/RELIABILITY.md"
+      ],
+      "verification": {
+        "checks": ["repo-harness", "typecheck", "build"],
+        "targets": [
+          {
+            "kind": "ui",
+            "path": "app/matches/[id]/page.tsx",
+            "state": "planned",
+            "note": "쿼터 편집 화면"
+          },
+          {
+            "kind": "domain",
+            "path": "lib/recommendation/recalculate.ts",
+            "state": "planned",
+            "note": "교체 후 재계산 로직"
+          }
+        ]
+      },
+      "handoff": {
+        "dependsOn": [
+          "추천 결과 화면과 후보 리스트 구조가 존재해야 한다.",
+          "재계산 로직이 단일 소스 기준으로 분리돼 있어야 한다."
+        ],
+        "deliverables": [
+          "쿼터 탭 UI",
+          "교체 선택 상태 UI",
+          "재계산 메타데이터 표시"
+        ],
+        "readyWhen": [
+          "교체 후 관련 숫자와 상태 표시가 즉시 바뀐다.",
+          "모바일에서 탭 기반 교체 흐름을 설명 없이 수행할 수 있다."
+        ],
+        "nextWorkstream": "Workstream 4: Result screen and editor"
+      }
+    },
+    {
+      "id": "substitution-cancel-and-reset",
+      "title": "교체 선택 취소와 원본 복귀",
+      "stage": "editing",
+      "scenarioType": "warning-path",
+      "priority": "P1",
+      "owner": "frontend",
+      "status": "contract-ready",
+      "objective": "잘못 선택한 교체 대상을 쉽게 취소하고 추천안 원본으로 되돌릴 수 있어야 한다.",
+      "linkedExecPlan": "docs/exec-plans/active/harness-foundation.md",
+      "inputs": {
+        "matchTitle": "토요 연습전",
+        "matchDate": "2026-04-11",
+        "quarterCount": 4,
+        "formations": ["4-3-3", "4-3-3", "4-4-2", "4-2-3-1"],
+        "playerCount": 15,
+        "notes": ["선택만 된 상태", "교체 실행 전 취소 또는 원본 복귀"]
+      },
+      "assertions": [
+        "교체 대상 선택은 실행 전 취소할 수 있어야 한다.",
+        "추천안 원본으로 되돌아가기 경로가 있어야 한다.",
+        "현재 화면 기준 재계산과 원본 복귀의 의미를 구분해 보여줘야 한다."
+      ],
+      "expectedResults": {
+        "ui": [
+          "선택된 상태와 취소 후 상태가 명확히 구분된다.",
+          "원본 복귀 버튼 또는 액션이 현재 수정본과 분리되어 보인다."
+        ],
+        "domain": [
+          "추천안 원본 상태와 현재 수정 상태를 분리된 값으로 유지한다."
+        ],
+        "persistence": []
+      },
+      "manualChecks": [
+        "선택된 상태와 취소 후 상태 차이가 시각적으로 명확하다.",
+        "원본 복귀 액션이 destructive reset처럼 보이지 않는다.",
+        "하네스 카드만 봐도 undo/cancel 범위를 이해할 수 있다."
+      ],
+      "linkedDocs": [
+        "docs/product-specs/quarter-lineup-editor.md",
+        "docs/DESIGN.md",
+        "docs/RELIABILITY.md"
+      ],
+      "verification": {
+        "checks": ["repo-harness", "typecheck"],
+        "targets": [
+          {
+            "kind": "ui",
+            "path": "app/matches/[id]/page.tsx",
+            "state": "planned",
+            "note": "선택 취소와 원본 복귀 액션"
+          },
+          {
+            "kind": "domain",
+            "path": "lib/recommendation/editor-state.ts",
+            "state": "planned",
+            "note": "원본/수정본 상태 분리"
+          }
+        ]
+      },
+      "handoff": {
+        "dependsOn": [
+          "편집 상태와 추천안 원본 상태가 구분된 데이터 모델이 있어야 한다."
+        ],
+        "deliverables": [
+          "선택 취소 UI",
+          "원본 복귀 액션",
+          "현재 편집 상태 표시"
+        ],
+        "readyWhen": [
+          "잘못된 선택을 저장 없이 되돌릴 수 있다.",
+          "원본과 현재 수정본의 경계가 UI에 드러난다."
+        ],
+        "nextWorkstream": "Workstream 4: Result screen and editor"
+      }
+    },
+    {
+      "id": "logged-out-second-save-limit",
+      "title": "비로그인 두 번째 저장 제한",
+      "stage": "persistence",
+      "scenarioType": "failure-path",
+      "priority": "P1",
+      "owner": "persistence",
+      "status": "contract-ready",
+      "objective": "비로그인 사용자가 두 번째 경기를 저장하려 할 때 제한과 덮어쓰기 선택을 명확히 보여준다.",
+      "linkedExecPlan": "docs/exec-plans/active/harness-foundation.md",
+      "inputs": {
+        "matchTitle": "일요 오전전",
+        "matchDate": "2026-04-12",
+        "quarterCount": 4,
+        "formations": ["4-4-2", "4-4-2", "4-3-3", "3-4-3"],
+        "playerCount": 16,
+        "notes": ["이미 localStorage에 1개 저장된 상태", "두 번째 새 경기 저장 시도"]
+      },
+      "assertions": [
+        "비로그인 사용자는 경기 1개만 저장 가능해야 한다.",
+        "기존 저장 경기 덮어쓰기 여부를 명확히 물어야 한다.",
+        "브라우저 저장이 임시 보관이라는 점을 함께 알려야 한다."
+      ],
+      "expectedResults": {
+        "ui": [
+          "두 번째 저장 시 제한 메시지와 덮어쓰기 선택지가 함께 보인다."
+        ],
+        "domain": [],
+        "persistence": [
+          "localStorage 기존 저장 여부를 판별하고 새 저장을 막거나 덮어쓰기를 수행한다."
+        ]
+      },
+      "manualChecks": [
+        "저장 제한 메시지가 숨겨진 규칙처럼 보이지 않는다.",
+        "덮어쓰기와 현재 경기 유지 선택이 구분된다.",
+        "로그인 가치 제안이 강요처럼 보이지 않는다."
+      ],
+      "linkedDocs": [
+        "docs/product-specs/team-save-and-export.md",
+        "docs/RELIABILITY.md",
+        "docs/SECURITY.md"
+      ],
+      "verification": {
+        "checks": ["repo-harness", "typecheck"],
+        "targets": [
+          {
+            "kind": "persistence",
+            "path": "lib/storage/local-match.ts",
+            "state": "planned",
+            "note": "비로그인 저장 제한과 덮어쓰기 정책"
+          },
+          {
+            "kind": "ui",
+            "path": "app/matches/[id]/page.tsx",
+            "state": "planned",
+            "note": "저장 제한 메시지와 선택 액션"
+          }
+        ]
+      },
+      "handoff": {
+        "dependsOn": [
+          "localStorage 저장 키와 덮어쓰기 정책이 정의돼 있어야 한다."
+        ],
+        "deliverables": [
+          "비로그인 저장 제한 UI",
+          "덮어쓰기 선택 흐름",
+          "브라우저 임시 저장 안내 문구"
+        ],
+        "readyWhen": [
+          "두 번째 저장 시 제한과 선택지가 함께 보인다.",
+          "저장 정책이 로그인/비로그인별로 혼동되지 않는다."
+        ],
+        "nextWorkstream": "Workstream 5: Save and export"
+      }
+    },
+    {
+      "id": "save-limit-and-export-policy",
+      "title": "저장 한도와 PNG 내보내기 정책",
+      "stage": "persistence",
+      "scenarioType": "happy-path",
+      "priority": "P0",
+      "owner": "persistence",
+      "status": "contract-ready",
+      "objective": "비로그인/로그인 저장 정책과 PNG 내보내기 범위를 제품 규칙으로 반복 확인한다.",
+      "linkedExecPlan": "docs/exec-plans/active/harness-foundation.md",
+      "inputs": {
+        "matchTitle": "일요 친선전",
+        "matchDate": "2026-04-12",
+        "quarterCount": 4,
+        "formations": ["4-4-2", "4-4-2", "4-3-3", "3-4-3"],
+        "playerCount": 16,
+        "notes": ["현재 쿼터 PNG export", "로그인/비로그인 정책 비교"]
+      },
+      "assertions": [
+        "비로그인 사용자는 경기 1개만 저장 가능해야 한다.",
+        "로그인 사용자는 경기 3개까지 저장 가능해야 한다.",
+        "PNG 내보내기 결과에는 필드 배치와 최소 식별 정보만 포함되어야 한다."
+      ],
+      "expectedResults": {
+        "ui": [
+          "저장 정책 차이가 UI 문구와 액션 흐름에 드러난다.",
+          "내보내기 미리보기 또는 export 대상 설명이 필드 배치 중심으로 보인다."
+        ],
+        "domain": [],
+        "persistence": [
+          "새 저장과 기존 수정 저장이 구분된다.",
+          "PNG export 대상에 편집 UI가 포함되지 않는다."
+        ]
+      },
+      "manualChecks": [
+        "저장 정책 문구가 하네스 카드만으로도 읽힌다.",
+        "내보내기 범위에서 제외되는 UI 요소가 명시되어 있다.",
+        "저장 실패 시 임시 저장 fallback 규칙의 출처 문서를 확인할 수 있다."
+      ],
+      "linkedDocs": [
+        "docs/product-specs/team-save-and-export.md",
+        "docs/SECURITY.md",
+        "docs/RELIABILITY.md"
+      ],
+      "verification": {
+        "checks": ["repo-harness", "build", "typecheck"],
+        "targets": [
+          {
+            "kind": "persistence",
+            "path": "lib/storage/local-match.ts",
+            "state": "planned",
+            "note": "비로그인 저장 정책"
+          },
+          {
+            "kind": "persistence",
+            "path": "lib/storage/remote-match.ts",
+            "state": "planned",
+            "note": "로그인 저장 정책"
+          },
+          {
+            "kind": "ui",
+            "path": "app/matches/[id]/summary/page.tsx",
+            "state": "planned",
+            "note": "요약/PNG export 대상 화면"
+          }
+        ]
+      },
+      "handoff": {
+        "dependsOn": [
+          "저장 모델과 export 대상 화면이 정의돼 있어야 한다.",
+          "로그인/비로그인 분기 정책이 문서와 코드에서 일치해야 한다."
+        ],
+        "deliverables": [
+          "저장 액션 분기",
+          "PNG export 대상 뷰",
+          "정책 안내 문구"
+        ],
+        "readyWhen": [
+          "로그인/비로그인 저장 한도가 정확히 반영된다.",
+          "PNG 결과물에 편집 UI가 섞이지 않는다."
+        ],
+        "nextWorkstream": "Workstream 5: Save and export"
+      }
+    },
+    {
+      "id": "save-failure-local-fallback",
+      "title": "저장 실패 후 브라우저 fallback",
+      "stage": "reliability",
+      "scenarioType": "failure-path",
+      "priority": "P0",
+      "owner": "persistence",
+      "status": "contract-ready",
+      "objective": "저장 실패 시 현재 편집 상태를 잃지 않고 브라우저 임시 저장으로 복구 가능성을 높인다.",
+      "linkedExecPlan": "docs/exec-plans/active/harness-foundation.md",
+      "inputs": {
+        "matchTitle": "토요 결산전",
+        "matchDate": "2026-04-18",
+        "quarterCount": 4,
+        "formations": ["4-3-3", "4-2-3-1", "4-4-2", "3-5-2"],
+        "playerCount": 15,
+        "notes": ["네트워크 오류 또는 인증 만료", "현재 편집 상태 보존이 핵심"]
+      },
+      "assertions": [
+        "저장 실패를 침묵 처리하지 않아야 한다.",
+        "현재 화면 상태를 잃지 않고 브라우저 fallback을 시도해야 한다.",
+        "사용자에게 복구 가능 여부와 다음 행동을 함께 알려야 한다."
+      ],
+      "expectedResults": {
+        "ui": [
+          "실패 메시지가 사용자 친화적 문구로 표시된다.",
+          "실패 후에도 현재 편집 화면이 유지된다."
+        ],
+        "domain": [],
+        "persistence": [
+          "원격 저장 실패 후 local fallback 저장을 시도한다.",
+          "fallback 성공/실패 결과를 구조화된 상태로 남긴다."
+        ]
+      },
+      "manualChecks": [
+        "오류 메시지가 내부 구현 세부사항을 그대로 노출하지 않는다.",
+        "실패 후에도 화면 내용이 사라지지 않는다.",
+        "fallback 성공 여부를 사용자가 이해할 수 있다."
+      ],
+      "linkedDocs": [
+        "docs/product-specs/team-save-and-export.md",
+        "docs/RELIABILITY.md",
+        "docs/SECURITY.md"
+      ],
+      "verification": {
+        "checks": ["repo-harness", "typecheck", "build"],
+        "targets": [
+          {
+            "kind": "persistence",
+            "path": "lib/storage/remote-match.ts",
+            "state": "planned",
+            "note": "원격 저장 실패 분기"
+          },
+          {
+            "kind": "persistence",
+            "path": "lib/storage/local-match.ts",
+            "state": "planned",
+            "note": "fallback 임시 저장"
+          },
+          {
+            "kind": "ui",
+            "path": "app/matches/[id]/page.tsx",
+            "state": "planned",
+            "note": "저장 실패 메시지와 상태 유지"
+          }
+        ]
+      },
+      "handoff": {
+        "dependsOn": [
+          "저장 요청 상태와 브라우저 임시 저장 경로가 분리돼 있어야 한다."
+        ],
+        "deliverables": [
+          "저장 실패 메시지",
+          "fallback 저장 로직",
+          "복구 가능 여부 안내"
+        ],
+        "readyWhen": [
+          "저장 실패 후 편집 상태가 유지된다.",
+          "fallback 성공/실패 결과가 사용자 메시지로 전달된다."
+        ],
+        "nextWorkstream": "Workstream 6: Hardening"
+      }
+    }
+  ]
+}
