@@ -12,6 +12,10 @@
 
 # testing
 /coverage
+/playwright-report
+/harness/reports/history/test-results/
+/harness/reports/latest/*.json
+/harness/reports/latest/screenshots/
 
 # next.js
 /.next/

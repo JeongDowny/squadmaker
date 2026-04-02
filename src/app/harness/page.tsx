@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { HarnessDashboard } from "@/components/harness/harness-dashboard";
+import { HarnessDashboard } from "@/features/harness/components/harness-dashboard";
 
 export const metadata: Metadata = {
   title: "Harness",

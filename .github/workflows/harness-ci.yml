@@ -27,9 +27,6 @@ jobs:
       - name: Repository harness
         run: npm run harness:repo
 
-      - name: Harness test
-        run: npm run test:harness
-
       - name: Typecheck
         run: npm run typecheck
 
@@ -38,3 +35,9 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Test
+        run: npm run test

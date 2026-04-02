@@ -1,12 +1,12 @@
 import Link from "next/link";
 import {
+  getHarnessDocument,
   getHarnessCounts,
   getScenarioPreview,
   getScenarioStatusLabel,
   getScenarioTypeLabel,
   getStageLabel,
-  harness,
-} from "@/lib/harness";
+} from "@/features/harness/server/harness-document";
 
 type HarnessDashboardProps = {
   compact?: boolean;
@@ -19,6 +19,7 @@ export function HarnessDashboard({
   scenarioLimit,
   showHeader = true,
 }: HarnessDashboardProps) {
+  const harness = getHarnessDocument();
   const counts = getHarnessCounts();
   const scenarios = getScenarioPreview(scenarioLimit);
 

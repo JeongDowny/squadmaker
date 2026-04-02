@@ -1,0 +1,32 @@
+{
+  "id": "lineup-balance",
+  "title": "추천 균형 결과 검증",
+  "owner": "domain",
+  "status": "planned",
+  "goal": "선수별 출전 쿼터 수와 쿼터 평균 점수 균형을 계산 기준으로 검증한다.",
+  "linkedDocs": [
+    "docs/ARCHITECTURE.md",
+    "docs/DOMAIN.md",
+    "docs/product-specs/formation-recommendation.md",
+    "docs/QUALITY_SCORE.md"
+  ],
+  "linkedExecPlan": "docs/product-specs/active/mvp-build.md",
+  "fixtureRefs": {
+    "players": "harness/fixtures/players/example-squad.json",
+    "match": "harness/fixtures/matches/example-match.json"
+  },
+  "execute": [
+    "npm run harness:seed",
+    "npm run harness:repo"
+  ],
+  "verify": {
+    "automated": [
+      "npm run harness:scenarios",
+      "npm run test:e2e"
+    ],
+    "manual": [
+      "추천안 A/B/C의 성격 차이를 숫자와 설명으로 읽을 수 있다."
+    ],
+    "screenshots": []
+  }
+}

@@ -1,6 +1,6 @@
 {
   "meta": {
-    "version": "2026-04-01",
+    "version": "2026-04-02",
     "purpose": "Squadmaker MVP implementation should iterate against explicit repository and application harness scenarios.",
     "owner": "product-engineering"
   },
@@ -46,15 +46,34 @@
         "category": "harness-check"
       },
       {
+        "id": "scenario-harness",
+        "command": "npm run harness:scenarios",
+        "purpose": "Scenario contract and linked fixture validation",
+        "category": "harness-check"
+      },
+      {
         "id": "test-harness",
         "command": "npm run test:harness",
         "purpose": "Repository harness suite entrypoint",
+        "category": "harness-check"
+      },
+      {
+        "id": "test-playwright",
+        "command": "npm run test:playwright",
+        "purpose": "Browser-level route rendering and interaction validation",
+        "category": "harness-check"
+      },
+      {
+        "id": "test",
+        "command": "npm run test",
+        "purpose": "Combined harness metadata and Playwright suite entrypoint",
         "category": "harness-check"
       }
     ],
     "workflowRequirements": [
       "비사소한 변경은 active exec-plan을 먼저 갱신한다.",
       "UI 변경은 스크린샷 검증 체크리스트를 포함한다.",
+      "UI 변경의 스크린샷은 Playwright 기반 visual test 또는 같은 수준의 자동 캡처로 남긴다.",
       "모든 비사소한 변경은 execution log를 남긴다.",
       "테스트 통과라는 표현은 실제 기능 테스트와 하네스 검증을 구분해 기록한다."
     ],
@@ -86,7 +105,8 @@
       "workflowPath": ".github/workflows/harness-ci.yml",
       "requiredCommands": [
         "npm run harness:repo",
-        "npm run test:harness",
+        "npm run harness:scenarios",
+        "npm run test",
         "npm run typecheck",
         "npm run lint",
         "npm run build"
@@ -99,7 +119,8 @@
       "application harness route must stay discoverable from the landing page",
       "scenario handoff contract must be complete",
       "scenario expected results and verification targets must be complete",
-      "test:harness is metadata validation, not the full future test suite"
+      "test:harness is metadata validation, not the full future test suite",
+      "npm run test must include browser-level Playwright verification"
     ]
   },
   "applicationHarness": {
@@ -173,23 +194,23 @@
         "docs/DESIGN.md"
       ],
       "verification": {
-        "checks": ["repo-harness", "typecheck", "build"],
+        "checks": ["repo-harness", "test-playwright", "build"],
         "targets": [
           {
             "kind": "ui",
-            "path": "app/page.tsx",
+            "path": "src/app/page.tsx",
             "state": "existing",
             "note": "랜딩 CTA와 제품 우선순위 표시"
           },
           {
             "kind": "ui",
-            "path": "app/harness/page.tsx",
+            "path": "src/app/harness/page.tsx",
             "state": "existing",
             "note": "하네스 진입 및 계약 노출"
           },
           {
             "kind": "ui",
-            "path": "app/matches/example/page.tsx",
+            "path": "src/app/matches/example/page.tsx",
             "state": "planned",
             "note": "예시 팀 체험 전용 결과 진입 화면"
           }

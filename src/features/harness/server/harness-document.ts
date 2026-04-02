@@ -1,20 +1,22 @@
-import harnessDocument from "@/data/harness/scenarios.json";
+import fs from "node:fs";
+import path from "node:path";
+import { cache } from "react";
 
-type ValidationCommand = {
+export type ValidationCommand = {
   id: string;
   command: string;
   purpose: string;
   category: "static-check" | "build-check" | "harness-check";
 };
 
-type VerificationTarget = {
+export type VerificationTarget = {
   kind: "ui" | "domain" | "persistence";
   path: string;
   state: "existing" | "planned";
   note: string;
 };
 
-type ScenarioInput = {
+export type ScenarioInput = {
   matchTitle: string;
   matchDate: string;
   quarterCount: number;
@@ -23,20 +25,20 @@ type ScenarioInput = {
   notes: string[];
 };
 
-type ExpectedResults = {
+export type ExpectedResults = {
   ui: string[];
   domain: string[];
   persistence: string[];
 };
 
-type HarnessHandoff = {
+export type HarnessHandoff = {
   dependsOn: string[];
   deliverables: string[];
   readyWhen: string[];
   nextWorkstream: string;
 };
 
-type HarnessScenario = {
+export type HarnessScenario = {
   id: string;
   title: string;
   stage:
@@ -64,7 +66,7 @@ type HarnessScenario = {
   handoff: HarnessHandoff;
 };
 
-type HarnessDocument = {
+export type HarnessDocument = {
   meta: {
     version: string;
     purpose: string;
@@ -94,7 +96,12 @@ type HarnessDocument = {
   scenarios: HarnessScenario[];
 };
 
-export const harness = harnessDocument as HarnessDocument;
+const harnessPath = path.join(process.cwd(), "harness/config/repository-harness.json");
+
+export const getHarnessDocument = cache(() => {
+  const file = fs.readFileSync(harnessPath, "utf8");
+  return JSON.parse(file) as HarnessDocument;
+});
 
 const priorityRank: Record<HarnessScenario["priority"], number> = {
   P0: 0,
@@ -137,6 +144,7 @@ export function getScenarioStatusLabel(status: HarnessScenario["status"]) {
 }
 
 export function getScenarioPreview(limit?: number) {
+  const harness = getHarnessDocument();
   const ordered = [...harness.scenarios].sort((left, right) => {
     const priorityDiff = priorityRank[left.priority] - priorityRank[right.priority];
     if (priorityDiff !== 0) {
@@ -150,6 +158,7 @@ export function getScenarioPreview(limit?: number) {
 }
 
 export function getHarnessCounts() {
+  const harness = getHarnessDocument();
   const verified = harness.scenarios.filter((scenario) => scenario.status === "verified").length;
   const contractReady = harness.scenarios.filter(
     (scenario) => scenario.status === "contract-ready"

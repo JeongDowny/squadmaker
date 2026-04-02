@@ -1,0 +1,20 @@
+{
+  "teamName": "Squadmaker Example Squad",
+  "players": [
+    { "name": "민준", "primaryPosition": "GK", "skill": 7 },
+    { "name": "도윤", "primaryPosition": "CB", "skill": 7 },
+    { "name": "서준", "primaryPosition": "CB", "skill": 7 },
+    { "name": "지훈", "primaryPosition": "LB", "skill": 6 },
+    { "name": "현우", "primaryPosition": "RB", "skill": 6 },
+    { "name": "예준", "primaryPosition": "CDM", "skill": 7 },
+    { "name": "준호", "primaryPosition": "CM", "skill": 6 },
+    { "name": "시우", "primaryPosition": "CAM", "skill": 6 },
+    { "name": "하준", "primaryPosition": "LW", "skill": 7 },
+    { "name": "우진", "primaryPosition": "RW", "skill": 7 },
+    { "name": "이안", "primaryPosition": "ST", "skill": 8 },
+    { "name": "재윤", "primaryPosition": "LB", "skill": 5 },
+    { "name": "태윤", "primaryPosition": "CM", "skill": 5 },
+    { "name": "지성", "primaryPosition": "RB", "skill": 5 },
+    { "name": "민성", "primaryPosition": "RM", "skill": 4 }
+  ]
+}

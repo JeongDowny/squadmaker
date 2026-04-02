@@ -1,0 +1,16 @@
+[harness]
+default_scenario_dir = "harness/scenarios"
+default_report_dir = "harness/reports/latest"
+default_fixture_dir = "harness/fixtures"
+
+[workflow]
+planner = ".codex/agents/planner.toml"
+implementer = ".codex/agents/implementer.toml"
+reviewer = ".codex/agents/reviewer.toml"
+
+[checks]
+validate = "npm run harness:repo"
+scenarios = "npm run harness:scenarios"
+seed = "npm run harness:seed"
+capture = "npm run harness:capture"
+report = "npm run harness:report"

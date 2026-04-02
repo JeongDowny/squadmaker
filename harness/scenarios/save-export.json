@@ -1,0 +1,31 @@
+{
+  "id": "save-export",
+  "title": "저장과 PNG 내보내기 검증",
+  "owner": "persistence",
+  "status": "planned",
+  "goal": "비로그인 저장 제한과 PNG 내보내기 규칙을 검증 가능한 시나리오로 유지한다.",
+  "linkedDocs": [
+    "docs/ARCHITECTURE.md",
+    "docs/RELIABILITY.md",
+    "docs/product-specs/team-save-and-export.md"
+  ],
+  "linkedExecPlan": "docs/product-specs/active/mvp-build.md",
+  "fixtureRefs": {
+    "match": "harness/fixtures/matches/example-match.json"
+  },
+  "execute": [
+    "npm run harness:repo"
+  ],
+  "verify": {
+    "automated": [
+      "npm run harness:scenarios"
+    ],
+    "manual": [
+      "비로그인 저장 1경기 제한을 메시지로 명확히 설명한다.",
+      "PNG에는 필드 배치만 포함된다는 정책을 문서와 UI에서 일치시킨다."
+    ],
+    "screenshots": [
+      "desktop export preview screenshot"
+    ]
+  }
+}

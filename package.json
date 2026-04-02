@@ -6,11 +6,19 @@
     "dev": "next dev",
     "build": "next build --webpack",
     "start": "next start",
+    "start:playwright": "next start --hostname 127.0.0.1 --port 3100",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "harness:repo": "node scripts/validate-harness.mjs",
-    "test:harness": "npm run harness:repo",
-    "test": "npm run test:harness"
+    "harness:repo": "node scripts/validate.mjs",
+    "harness:scenarios": "node harness/evals/validate-scenarios.mjs",
+    "harness:seed": "node scripts/seed-harness-data.mjs",
+    "harness:capture": "npm run test:visual",
+    "harness:report": "node scripts/summarize-report.mjs",
+    "test:harness": "npm run harness:repo && npm run harness:scenarios",
+    "test:playwright": "npm run build && playwright test",
+    "test:e2e": "npm run build && playwright test tests/e2e",
+    "test:visual": "npm run build && playwright test tests/visual",
+    "test": "npm run test:harness && npm run test:playwright"
   },
   "dependencies": {
     "next": "16.2.2",
@@ -18,7 +26,9 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4",
+    "@playwright/test": "^1.56.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

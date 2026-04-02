@@ -100,9 +100,11 @@ repository-level / application-level harness foundation
 - 모바일 폭에서도 카드가 한 열로 무너지지 않고 읽을 수 있음
 
 ### Screenshot verification checklist
-- 모바일 viewport 기준 `/` 화면 스크린샷 확인
-- 모바일 viewport 기준 `/harness` 화면 스크린샷 확인
-- 데스크톱 viewport 기준 `/harness` 화면 스크린샷 확인
+- 데스크톱 viewport 기준 `/` 또는 해당 UI 변경 화면 스크린샷 1장 생성
+- 모바일 viewport 기준 `/` 또는 해당 UI 변경 화면 스크린샷 1장 생성
+- 생성한 스크린샷을 기준으로 `docs/DESIGN.md`와 비교 검토
+- 정보 위계, CTA 가시성, 전술 보드 가독성 확인
+- 문제 발견 시 최소 1회 이상 수정 반복 후 다시 스크린샷 확인
 
 ## Risks
 - 실제 기능이 아직 없는 상태라 application harness가 문서 대시보드처럼 보일 수 있다.

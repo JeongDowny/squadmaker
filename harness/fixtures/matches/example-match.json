@@ -1,0 +1,8 @@
+{
+  "title": "토요 아침전",
+  "date": "2026-04-04",
+  "quarterCount": 4,
+  "formations": ["4-4-2", "4-3-3", "4-2-3-1", "3-4-3"],
+  "participants": 15,
+  "scenario": "landing-page"
+}

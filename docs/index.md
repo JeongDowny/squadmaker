@@ -56,6 +56,39 @@
 ### `QUALITY_SCORE.md`
 좋은 추천 결과와 좋은 UI를 판단하는 기준을 정리한다.
 
+## Harness assets
+
+하네스 실행 자산은 저장소 루트의 `../harness/`와 `../.codex/`에도 존재한다.
+
+앱 코드는 `../src/` 아래에서 feature 단위로 관리한다.
+
+### `../harness/config/repository-harness.json`
+repository/application harness 공용 source of truth
+
+### `../harness/scenarios/*`
+기능별 실행-검증 시나리오 JSON
+
+### `../harness/fixtures/*`
+예시 선수, 경기, 스크린샷 자산
+
+### `../harness/evals/*`
+체크리스트, 시나리오 검증, 점수 계산 유틸
+
+### `../harness/reports/*`
+latest / history 실행 결과
+
+### `../src/app/*`
+App Router 엔트리와 페이지
+
+### `../src/features/*`
+랜딩, 하네스, 이후 경기 생성/결과 편집 기능 모듈
+
+### `../.codex/agents/*`
+planner / implementer / reviewer 역할 설정
+
+### `../.codex/skills/*`
+UI review, regression check, release check 가이드
+
 ## Product specs
 
 기능별 제품 스펙은 `product-specs/` 아래에 둔다.

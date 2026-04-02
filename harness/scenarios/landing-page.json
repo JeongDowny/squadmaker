@@ -1,0 +1,41 @@
+{
+  "id": "landing-page",
+  "title": "서비스 랜딩 페이지 검증",
+  "owner": "frontend",
+  "status": "active",
+  "goal": "첫 방문 사용자가 서비스 예시와 다음 행동을 빠르게 이해하는 랜딩을 유지한다.",
+  "linkedDocs": [
+    "docs/PRODUCT_SENSE.md",
+    "docs/FRONTEND.md",
+    "docs/DESIGN.md",
+    "docs/product-specs/new-user-onboarding.md"
+  ],
+  "linkedExecPlan": "docs/exec-plans/active/service-intro-landing.md",
+  "fixtureRefs": {
+    "players": "harness/fixtures/players/example-squad.json",
+    "match": "harness/fixtures/matches/example-match.json"
+  },
+  "execute": [
+    "npm run harness:seed",
+    "npm run lint",
+    "npm run typecheck",
+    "npm run test:e2e",
+    "npm run test:visual",
+    "npm run build"
+  ],
+  "verify": {
+    "automated": [
+      "npm run harness:repo",
+      "npm run harness:scenarios",
+      "npm run test:playwright"
+    ],
+    "manual": [
+      "랜딩 상단 CTA가 첫 화면 안에 보인다.",
+      "서비스 예시 섹션에서 전술 보드와 quarter summary가 동시에 읽힌다."
+    ],
+    "screenshots": [
+      "harness/reports/latest/screenshots/landing-desktop.png",
+      "harness/reports/latest/screenshots/landing-mobile.png"
+    ]
+  }
+}

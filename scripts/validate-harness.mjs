@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const rootDir = process.cwd();
-const harnessPath = path.join(rootDir, "data/harness/scenarios.json");
+const harnessPath = path.join(rootDir, "harness/config/repository-harness.json");
 const packageJsonPath = path.join(rootDir, "package.json");
 
 const harness = JSON.parse(fs.readFileSync(harnessPath, "utf8"));
@@ -304,8 +304,16 @@ const hasHarnessRepoCommand = harness.repositoryHarness?.validationCommands?.som
 const hasHarnessTestCommand = harness.repositoryHarness?.validationCommands?.some(
   (command) => command.command === "npm run test:harness"
 );
+const hasPlaywrightCommand = harness.repositoryHarness?.validationCommands?.some(
+  (command) => command.command === "npm run test:playwright"
+);
+const hasTestCommand = harness.repositoryHarness?.validationCommands?.some(
+  (command) => command.command === "npm run test"
+);
 assert(hasHarnessRepoCommand, "repositoryHarness must reference npm run harness:repo");
 assert(hasHarnessTestCommand, "repositoryHarness must reference npm run test:harness");
+assert(hasPlaywrightCommand, "repositoryHarness must reference npm run test:playwright");
+assert(hasTestCommand, "repositoryHarness must reference npm run test");
 
 assert(
   fs.existsSync(path.join(rootDir, harness.repositoryHarness.ciGate.workflowPath)),
