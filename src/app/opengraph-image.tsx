@@ -22,8 +22,9 @@ const PLAYERS: { abbr: string; pos: string; x: number; y: number; gk?: boolean }
 
 export default async function OGImage() {
   // 네트워크 의존성을 없애기 위해 번들된 폰트 파일을 직접 읽음
+  // next/og는 TTF만 지원 — woff2 불가
   const fontBold = readFileSync(
-    join(process.cwd(), "public/fonts/NotoSansKR-Bold.woff2")
+    join(process.cwd(), "public/fonts/NotoSansKR-Bold.ttf")
   );
 
   return new ImageResponse(
