@@ -43,7 +43,7 @@ export default function OGImage() {
             background: "radial-gradient(circle, rgba(22,163,74,0.18) 0%, transparent 70%)",
             top: -100,
             right: 200,
-            pointerEvents: "none",
+            display: "flex",
           }}
         />
 
@@ -55,7 +55,6 @@ export default function OGImage() {
             justifyContent: "center",
             padding: "64px 48px 64px 80px",
             flex: 1,
-            zIndex: 10,
           }}
         >
           {/* 로고 */}
@@ -93,34 +92,37 @@ export default function OGImage() {
             </span>
           </div>
 
-          {/* 태그라인 */}
+          {/* 태그라인 — 자식이 여러 개이므로 display: flex 필수 */}
           <div
             style={{
+              display: "flex",
+              flexDirection: "column",
               fontSize: 52,
               fontWeight: 900,
               color: "#ffffff",
               lineHeight: 1.15,
               letterSpacing: "-0.04em",
               marginBottom: 24,
-              wordBreak: "keep-all",
             }}
           >
-            경기 전 선발 배치,{"\n"}
-            <span style={{ color: "#4ade80" }}>5분 안에</span> 완성
+            <span>경기 전 선발 배치,</span>
+            <div style={{ display: "flex", gap: 12 }}>
+              <span style={{ color: "#4ade80" }}>5분 안에</span>
+              <span>완성</span>
+            </div>
           </div>
 
           {/* 서브 */}
-          <div
+          <span
             style={{
               fontSize: 22,
               color: "rgba(255,255,255,0.5)",
               lineHeight: 1.6,
-              wordBreak: "keep-all",
               maxWidth: 440,
             }}
           >
             쿼터별 포메이션 선택 → 공평한 출전 분배 자동 계산 → PNG 공유
-          </div>
+          </span>
 
           {/* 배지 */}
           <div
@@ -134,6 +136,7 @@ export default function OGImage() {
               <div
                 key={label}
                 style={{
+                  display: "flex",
                   background: "rgba(22,163,74,0.12)",
                   border: "1px solid rgba(22,163,74,0.3)",
                   borderRadius: 9999,
@@ -160,7 +163,6 @@ export default function OGImage() {
             background: "rgba(255,255,255,0.02)",
             display: "flex",
             flexDirection: "column",
-            zIndex: 10,
             flexShrink: 0,
           }}
         >
@@ -182,6 +184,7 @@ export default function OGImage() {
                   height: 10,
                   borderRadius: "50%",
                   background: c,
+                  display: "flex",
                 }}
               />
             ))}
@@ -194,6 +197,7 @@ export default function OGImage() {
             >
               <div
                 style={{
+                  display: "flex",
                   background: "rgba(255,255,255,0.05)",
                   borderRadius: 6,
                   padding: "3px 12px",
@@ -224,6 +228,7 @@ export default function OGImage() {
                 top: "50%",
                 height: 1,
                 background: "rgba(255,255,255,0.2)",
+                display: "flex",
               }}
             />
             {/* 중앙원 */}
@@ -238,6 +243,7 @@ export default function OGImage() {
                 left: "50%",
                 marginTop: -25,
                 marginLeft: -25,
+                display: "flex",
               }}
             />
 
@@ -273,7 +279,6 @@ export default function OGImage() {
                     fontSize: 9,
                     fontWeight: 800,
                     color: p.gk ? "#713f12" : "#155728",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
                   }}
                 >
                   {p.abbr}
@@ -283,7 +288,6 @@ export default function OGImage() {
                     fontSize: 8,
                     fontWeight: 600,
                     color: "rgba(255,255,255,0.9)",
-                    textShadow: "0 1px 3px rgba(0,0,0,0.9)",
                     whiteSpace: "nowrap",
                   }}
                 >
@@ -295,7 +299,7 @@ export default function OGImage() {
         </div>
 
         {/* 하단 URL */}
-        <div
+        <span
           style={{
             position: "absolute",
             bottom: 28,
@@ -306,7 +310,7 @@ export default function OGImage() {
           }}
         >
           squadmaker.vercel.app
-        </div>
+        </span>
       </div>
     ),
     {
