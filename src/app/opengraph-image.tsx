@@ -1,3 +1,5 @@
+import { readFileSync } from "fs";
+import { join } from "path";
 import { ImageResponse } from "next/og";
 
 export const alt = "SquadMaker — 경기 전 선발 배치를 5분 안에";
@@ -19,10 +21,10 @@ const PLAYERS: { abbr: string; pos: string; x: number; y: number; gk?: boolean }
 ];
 
 export default async function OGImage() {
-  // 한국어 렌더링을 위해 Noto Sans KR Bold 폰트 로드
-  const fontBold = await fetch(
-    "https://fonts.gstatic.com/s/notosanskr/v36/PbyxFmXiEBPT4ITbgNA5Cgms3VYcOA-vvnIzzuoyeLTq8H4hfeE.woff2"
-  ).then((res) => res.arrayBuffer());
+  // 네트워크 의존성을 없애기 위해 번들된 폰트 파일을 직접 읽음
+  const fontBold = readFileSync(
+    join(process.cwd(), "public/fonts/NotoSansKR-Bold.woff2")
+  );
 
   return new ImageResponse(
     (
