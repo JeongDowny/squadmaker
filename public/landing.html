@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SquadMaker — 경기 전 선발 배치를 5분 안에</title>
+  <meta name="description" content="축구 동호회 감독을 위한 쿼터별 선발 배치 서비스. 포메이션을 선택하면 공평한 출전 분배를 자동으로 추천합니다.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script>
+  <script src="https://unpkg.com/motion@latest/dist/motion.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+            display: ['Outfit', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Pretendard', -apple-system, system-ui, sans-serif; background: #050505; color: #fff; }
+    .font-display { font-family: 'Outfit', system-ui, sans-serif; }
+    .ko { word-break: keep-all; overflow-wrap: break-word; }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 60; pointer-events: none; opacity: 0.022;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 256px 256px;
+    }
+
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-16px)} }
+    @keyframes floatB { 0%,100%{transform:translateY(0) rotate(8deg)} 50%{transform:translateY(14px) rotate(8deg)} }
+    @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(2rem);filter:blur(6px)} to{opacity:1;transform:translateY(0);filter:blur(0)} }
+    @keyframes orbPulse { 0%,100%{opacity:0.12;transform:scale(1)} 50%{opacity:0.18;transform:scale(1.08)} }
+    @keyframes spin { to{transform:rotate(360deg)} }
+
+    .sp { transition: all 0.5s cubic-bezier(0.16,1,0.3,1); }
+
+    .reveal { opacity:0; transform:translateY(2.5rem); filter:blur(6px); transition:opacity 0.8s cubic-bezier(0.16,1,0.3,1),transform 0.8s cubic-bezier(0.16,1,0.3,1),filter 0.8s cubic-bezier(0.16,1,0.3,1); }
+    .reveal.in { opacity:1; transform:translateY(0); filter:blur(0); }
+    .d1{transition-delay:80ms} .d2{transition-delay:160ms} .d3{transition-delay:240ms} .d4{transition-delay:320ms} .d5{transition-delay:400ms}
+
+    /* Double-Bezel */
+    .db-outer { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); padding:5px; border-radius:1.75rem; transition:border-color 0.5s cubic-bezier(0.16,1,0.3,1),background 0.5s cubic-bezier(0.16,1,0.3,1); }
+    .db-outer:hover { border-color:rgba(22,163,74,0.25); background:rgba(22,163,74,0.025); }
+    .db-inner { background:rgba(255,255,255,0.025); box-shadow:inset 0 1px 1px rgba(255,255,255,0.07); border-radius:calc(1.75rem - 5px); padding:1.75rem; height:100%; }
+
+    /* Nav */
+    .nav-pill { background:rgba(5,5,5,0.72); border:1px solid rgba(255,255,255,0.09); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); transition:all 0.5s cubic-bezier(0.16,1,0.3,1); }
+    .nav-pill.scrolled { background:rgba(5,5,5,0.94); border-color:rgba(255,255,255,0.13); }
+
+    /* CTA */
+    .btn-p { transition:all 0.5s cubic-bezier(0.16,1,0.3,1); }
+    .btn-p:hover { transform:scale(1.025); box-shadow:0 0 40px rgba(22,163,74,0.3),0 0 80px rgba(22,163,74,0.08); }
+    .btn-p:active { transform:scale(0.975); }
+    .btn-p:hover .arr { transform:translateX(3px); }
+    .arr { transition:transform 0.5s cubic-bezier(0.16,1,0.3,1); }
+    .btn-s { transition:all 0.5s cubic-bezier(0.16,1,0.3,1); }
+    .btn-s:hover { transform:scale(1.025); background:rgba(255,255,255,0.07); }
+    .btn-s:active { transform:scale(0.975); }
+
+    /* Tactical field */
+    .field-bg {
+      background:linear-gradient(180deg,#1b5e2b 0%,#1e6b31 40%,#1e6b31 60%,#1b5e2b 100%);
+      position:relative; overflow:hidden;
+    }
+    .field-bg::before {
+      content:''; position:absolute; inset:0;
+      background:
+        linear-gradient(rgba(255,255,255,0.06) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,0.06) 1px,transparent 1px);
+      background-size: 30% 25%;
+    }
+    .field-line-h { position:absolute; left:5%; right:5%; height:1px; background:rgba(255,255,255,0.25); }
+    .field-line-v { position:absolute; top:0; bottom:0; width:1px; background:rgba(255,255,255,0.25); }
+    .field-circle { position:absolute; border-radius:50%; border:1px solid rgba(255,255,255,0.25); }
+
+    .player-b { position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:2px; }
+    .player-dot { width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,0.95); border:2px solid rgba(22,163,74,0.8); display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:800; color:#155728; box-shadow:0 2px 10px rgba(0,0,0,0.5); transition:all 0.3s cubic-bezier(0.16,1,0.3,1); cursor:pointer; }
+    .player-dot:hover { transform:scale(1.2); box-shadow:0 4px 20px rgba(22,163,74,0.5); }
+    .player-dot.gk { background:rgba(250,204,21,0.95); border-color:rgba(161,98,7,0.8); color:#713f12; }
+    .player-nm { font-size:8px; font-weight:600; color:rgba(255,255,255,0.9); text-shadow:0 1px 4px rgba(0,0,0,0.9); white-space:nowrap; }
+
+    /* Quarter tab */
+    .qtab { transition:all 0.4s cubic-bezier(0.16,1,0.3,1); }
+    .qtab.on { background:rgba(22,163,74,0.15); border-color:rgba(22,163,74,0.5); color:#4ade80; }
+    .qtab:not(.on):hover { background:rgba(255,255,255,0.05); }
+
+    /* Marquee */
+    .mq-track { display:flex; animation:marquee 36s linear infinite; }
+
+    /* Step connector */
+    .step-line { position:absolute; left:50%; top:100%; width:1px; height:2rem; background:linear-gradient(to bottom,rgba(22,163,74,0.4),transparent); transform:translateX(-50%); }
+
+    /* Mobile menu */
+    #mob-menu { background:rgba(4,4,4,0.97); backdrop-filter:blur(40px); -webkit-backdrop-filter:blur(40px); }
+
+    /* Bento grid */
+    @media(min-width:768px){
+      .bento { display:grid; grid-template-columns:repeat(12,1fr); grid-template-rows:auto; gap:1rem; }
+      .b-lg { grid-column:span 7; grid-row:span 2; }
+      .b-sm { grid-column:span 5; }
+      .b-full { grid-column:span 12; }
+    }
+    @media(max-width:767px){ .bento { display:flex; flex-direction:column; gap:1rem; } }
+
+    /* Hero mockup float */
+    .hero-float { animation:float 7s ease-in-out infinite; }
+    .hero-float-b { animation:floatB 9s ease-in-out 1s infinite; }
+
+    /* Orb */
+    .orb { position:absolute; border-radius:50%; filter:blur(100px); pointer-events:none; animation:orbPulse 8s ease-in-out infinite; }
+
+    /* Testimonial grid */
+    @media(min-width:768px){
+      .test-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.5rem; align-items:start; }
+    }
+    @media(max-width:767px){ .test-grid { display:flex; flex-direction:column; gap:1rem; } }
+
+    /* Formation label */
+    .form-label { font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:rgba(74,222,128,0.8); }
+
+    /* Eyebrow */
+    .eyebrow { display:inline-flex; align-items:center; gap:6px; border-radius:9999px; padding:4px 14px; font-size:12px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; background:rgba(22,163,74,0.1); border:1px solid rgba(22,163,74,0.2); color:rgba(74,222,128,0.9); }
+  </style>
+</head>
+<body>
+
+<!-- ======================== NAV ======================== -->
+<nav id="nav" class="nav-pill fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-3 py-2 rounded-full" style="min-width:280px; max-width:720px; width:90%;">
+  <a href="#" class="flex items-center gap-2 mr-2 sp hover:opacity-80">
+    <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#16a34a,#15803d);display:flex;align-items:center;justify-content:center;">
+      <iconify-icon icon="solar:football-linear" style="color:#fff;font-size:16px;"></iconify-icon>
+    </div>
+    <span class="font-display font-800 text-white text-sm tracking-tight">SquadMaker</span>
+  </a>
+  <div class="hidden md:flex items-center gap-1 flex-1 justify-center">
+    <a href="#features" class="sp px-3 py-1.5 rounded-full text-sm text-zinc-400 hover:text-white hover:bg-white/5">기능</a>
+    <a href="#how" class="sp px-3 py-1.5 rounded-full text-sm text-zinc-400 hover:text-white hover:bg-white/5">사용법</a>
+    <a href="#testimonials" class="sp px-3 py-1.5 rounded-full text-sm text-zinc-400 hover:text-white hover:bg-white/5">사용자 후기</a>
+  </div>
+  <div class="flex items-center gap-2 ml-auto">
+    <a href="/matches/new" class="hidden md:flex btn-p items-center gap-2 bg-[#16a34a] hover:bg-[#15803d] text-white text-sm font-semibold px-5 py-2 rounded-full">
+      무료로 시작하기
+      <span class="arr w-5 h-5 rounded-full bg-black/15 flex items-center justify-center">
+        <iconify-icon icon="solar:arrow-right-linear" style="font-size:11px;"></iconify-icon>
+      </span>
+    </a>
+    <button id="mob-btn" class="md:hidden w-8 h-8 flex items-center justify-center rounded-full bg-white/8 sp hover:bg-white/12" aria-label="메뉴 열기">
+      <iconify-icon icon="solar:hamburger-menu-linear" style="font-size:18px;"></iconify-icon>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile menu -->
+<div id="mob-menu" class="fixed inset-0 z-40 hidden flex-col items-center justify-center gap-6">
+  <button id="mob-close" class="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-white/8">
+    <iconify-icon icon="solar:close-linear" style="font-size:20px;"></iconify-icon>
+  </button>
+  <a href="#features" class="mob-link sp text-2xl font-semibold text-zinc-300 hover:text-white" style="opacity:0;transform:translateY(2rem);">기능</a>
+  <a href="#how" class="mob-link sp text-2xl font-semibold text-zinc-300 hover:text-white" style="opacity:0;transform:translateY(2rem);">사용법</a>
+  <a href="#testimonials" class="mob-link sp text-2xl font-semibold text-zinc-300 hover:text-white" style="opacity:0;transform:translateY(2rem);">사용자 후기</a>
+  <a href="/matches/new" class="mob-link btn-p flex items-center gap-2 bg-[#16a34a] text-white font-semibold px-8 py-4 rounded-full text-lg" style="opacity:0;transform:translateY(2rem);">
+    무료로 시작하기
+  </a>
+</div>
+
+<!-- ======================== HERO ======================== -->
+<section class="relative flex flex-col items-center justify-center text-center min-h-[100dvh] px-4 pt-24 pb-16 overflow-hidden">
+  <!-- Background orbs -->
+  <div class="orb" style="width:600px;height:600px;background:#16a34a;top:-200px;left:50%;margin-left:-300px;opacity:0.08;animation-delay:0s;"></div>
+  <div class="orb" style="width:400px;height:400px;background:#059669;bottom:-150px;left:10%;opacity:0.07;animation-delay:2s;"></div>
+  <div class="orb" style="width:300px;height:300px;background:#0d9488;bottom:-100px;right:5%;opacity:0.06;animation-delay:4s;"></div>
+
+  <!-- Eyebrow -->
+  <div class="eyebrow mb-6 reveal" style="animation:fadeInUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.1s both;">
+    <iconify-icon icon="solar:football-bold" style="font-size:13px;color:#4ade80;"></iconify-icon>
+    축구 동호회를 위한 배치 서비스
+  </div>
+
+  <!-- Headline -->
+  <h1 class="ko font-display font-900 text-5xl md:text-6xl lg:text-7xl tracking-tight leading-snug text-white max-w-4xl mb-6 reveal d1" style="animation:fadeInUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.2s both;">
+    경기 전 선발 배치,<br>
+    <span style="background:linear-gradient(90deg,#4ade80,#16a34a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">5분 안에</span> 완성하세요.
+  </h1>
+
+  <!-- Subheadline -->
+  <p class="ko text-lg md:text-xl text-zinc-400 leading-relaxed max-w-2xl mb-10 reveal d2" style="animation:fadeInUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.3s both;">
+    포메이션을 선택하면 공평한 출전 분배와 포지션 적합성을 자동으로 계산합니다.<br class="hidden md:block"> 메모장, 머릿속 계산은 이제 필요 없습니다.
+  </p>
+
+  <!-- CTA Buttons -->
+  <div class="flex flex-col sm:flex-row items-center gap-3 mb-16 reveal d3" style="animation:fadeInUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.4s both;">
+    <a href="/matches/new" class="btn-p flex items-center gap-3 bg-[#16a34a] hover:bg-[#15803d] text-white font-semibold px-8 py-4 rounded-full text-lg min-h-[52px]">
+      무료로 시작하기
+      <span class="arr w-7 h-7 rounded-full bg-black/15 flex items-center justify-center">
+        <iconify-icon icon="solar:arrow-right-linear" style="font-size:13px;"></iconify-icon>
+      </span>
+    </a>
+    <a href="#preview" class="btn-s flex items-center gap-2 text-zinc-300 border border-white/10 px-8 py-4 rounded-full text-lg font-medium min-h-[52px]">
+      <iconify-icon icon="solar:play-circle-linear" style="font-size:18px;color:#4ade80;"></iconify-icon>
+      미리 보기
+    </a>
+  </div>
+
+  <!-- Hero product mockup -->
+  <div class="reveal d4 w-full max-w-3xl relative" style="animation:fadeInUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.5s both;">
+    <!-- Outer glow -->
+    <div style="position:absolute;inset:-2px;border-radius:2rem;background:linear-gradient(135deg,rgba(22,163,74,0.3),transparent,rgba(22,163,74,0.1));pointer-events:none;z-index:0;"></div>
+    <div class="relative db-outer" style="border-radius:2rem;overflow:hidden;z-index:1;">
+      <div class="db-inner" style="padding:0;background:rgba(12,12,12,0.95);">
+        <!-- Mini app chrome -->
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-white/5">
+          <div class="flex gap-1.5"><div style="width:10px;height:10px;border-radius:50%;background:#ff5f56;"></div><div style="width:10px;height:10px;border-radius:50%;background:#ffbd2e;"></div><div style="width:10px;height:10px;border-radius:50%;background:#27c93f;"></div></div>
+          <div class="flex-1 flex justify-center"><div style="background:rgba(255,255,255,0.06);border-radius:6px;padding:3px 12px;font-size:11px;color:rgba(255,255,255,0.35);">squadmaker.app</div></div>
+        </div>
+        <!-- App content preview -->
+        <div class="grid md:grid-cols-2" style="min-height:320px;">
+          <!-- Left: Field -->
+          <div class="field-bg relative" style="min-height:280px;">
+            <!-- Field decorations -->
+            <div class="field-line-h" style="top:50%;"></div>
+            <div class="field-circle" style="width:60px;height:60px;top:50%;left:50%;margin-top:-30px;margin-left:-30px;"></div>
+            <div class="field-line-h" style="top:18%;left:20%;right:20%;width:60%;margin-left:20%;"></div>
+            <div class="field-line-h" style="top:82%;left:20%;right:20%;width:60%;margin-left:20%;"></div>
+            <!-- Quarter label -->
+            <div style="position:absolute;top:8px;left:10px;" class="eyebrow" style="font-size:9px;padding:2px 8px;">1Q · 4-2-3-1</div>
+            <!-- Players 4-2-3-1 -->
+            <div class="player-b" style="left:50%;top:10%;"><div class="player-dot">임</div><div class="player-nm">임도윤</div></div>
+            <div class="player-b" style="left:18%;top:28%;"><div class="player-dot">윤</div><div class="player-nm">윤서율</div></div>
+            <div class="player-b" style="left:50%;top:28%;"><div class="player-dot">강</div><div class="player-nm">강태민</div></div>
+            <div class="player-b" style="left:82%;top:28%;"><div class="player-dot">배</div><div class="player-nm">배성현</div></div>
+            <div class="player-b" style="left:36%;top:47%;"><div class="player-dot">오</div><div class="player-nm">오승원</div></div>
+            <div class="player-b" style="left:64%;top:47%;"><div class="player-dot">한</div><div class="player-nm">한지원</div></div>
+            <div class="player-b" style="left:10%;top:66%;"><div class="player-dot">이</div><div class="player-nm">이서준</div></div>
+            <div class="player-b" style="left:36%;top:66%;"><div class="player-dot">최</div><div class="player-nm">최도현</div></div>
+            <div class="player-b" style="left:64%;top:66%;"><div class="player-dot">김</div><div class="player-nm">김태양</div></div>
+            <div class="player-b" style="left:90%;top:66%;"><div class="player-dot">정</div><div class="player-nm">정하윤</div></div>
+            <div class="player-b" style="left:50%;top:85%;"><div class="player-dot gk">박</div><div class="player-nm">박민준</div></div>
+          </div>
+          <!-- Right: Summary -->
+          <div class="p-4 flex flex-col gap-3">
+            <div class="form-label mb-1">출전 균등 추천안</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.5);" class="ko">선수별 총 출전 쿼터 수</div>
+            <div class="flex flex-col gap-1.5">
+              <div class="flex items-center justify-between"><span style="font-size:12px;color:rgba(255,255,255,0.8);">임도윤</span><div class="flex gap-1"><div style="width:16px;height:16px;border-radius:4px;background:rgba(22,163,74,0.7);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;">1</div><div style="width:16px;height:16px;border-radius:4px;background:rgba(255,255,255,0.08);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);">-</div><div style="width:16px;height:16px;border-radius:4px;background:rgba(255,255,255,0.08);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);">-</div><div style="width:16px;height:16px;border-radius:4px;background:rgba(255,255,255,0.08);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);">-</div></div></div>
+              <div class="flex items-center justify-between"><span style="font-size:12px;color:rgba(255,255,255,0.8);">강태민</span><div class="flex gap-1"><div style="width:16px;height:16px;border-radius:4px;background:rgba(22,163,74,0.7);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;">1</div><div style="width:16px;height:16px;border-radius:4px;background:rgba(255,255,255,0.08);font-size:9px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);">-</div><div style="width:16px;height:16px;border-radius:4px;background:rgba(255,255,255,0.08);font-size:9px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);">-</div><div style="width:16px;height:16px;border-radius:4px;background:rgba(255,255,255,0.08);font-size:9px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);">-</div></div></div>
+              <div class="flex items-center justify-between"><span style="font-size:12px;color:rgba(255,255,255,0.8);">박민준</span><div class="flex gap-1"><div style="width:16px;height:16px;border-radius:4px;background:rgba(22,163,74,0.7);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;">1</div><div style="width:16px;height:16px;border-radius:4px;background:rgba(255,255,255,0.08);font-size:9px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);">-</div><div style="width:16px;height:16px;border-radius:4px;background:rgba(255,255,255,0.08);font-size:9px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);">-</div><div style="width:16px;height:16px;border-radius:4px;background:rgba(255,255,255,0.08);font-size:9px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);">-</div></div></div>
+              <div class="flex items-center justify-between"><span style="font-size:12px;color:rgba(255,255,255,0.5);">오예린</span><div class="flex gap-1"><div style="width:16px;height:16px;border-radius:4px;background:rgba(255,255,255,0.06);font-size:9px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);">-</div><div style="width:16px;height:16px;border-radius:4px;background:rgba(255,255,255,0.06);font-size:9px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);">-</div><div style="width:16px;height:16px;border-radius:4px;background:rgba(255,255,255,0.06);font-size:9px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);">-</div><div style="width:16px;height:16px;border-radius:4px;background:rgba(255,255,255,0.06);font-size:9px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);">-</div></div></div>
+            </div>
+            <div style="margin-top:auto;padding:10px;border-radius:10px;background:rgba(22,163,74,0.08);border:1px solid rgba(22,163,74,0.2);">
+              <div style="font-size:10px;color:rgba(74,222,128,0.9);font-weight:600;" class="ko">포메이션 변경 시 즉시 재계산</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;" class="ko">2Q 포메이션을 바꿔보세요</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== METRICS STRIP ======================== -->
+<section class="py-16 px-4 border-y border-white/5 overflow-hidden" id="metrics">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center reveal">
+      <div class="d1">
+        <div class="font-display font-800 text-4xl md:text-5xl text-white mb-1">12,847<span style="color:#4ade80;">+</span></div>
+        <div class="ko text-sm text-zinc-500">경기 배치 생성</div>
+      </div>
+      <div class="d2">
+        <div class="font-display font-800 text-4xl md:text-5xl text-white mb-1">4.87<span style="color:#4ade80;">/5</span></div>
+        <div class="ko text-sm text-zinc-500">평균 만족도</div>
+      </div>
+      <div class="d3">
+        <div class="font-display font-800 text-4xl md:text-5xl text-white mb-1">47,200<span style="color:#4ade80;">+</span></div>
+        <div class="ko text-sm text-zinc-500">선수 배치 계산</div>
+      </div>
+      <div class="d4">
+        <div class="font-display font-800 text-4xl md:text-5xl text-white mb-1">3<span style="font-size:1.5rem;color:#4ade80;">분</span></div>
+        <div class="ko text-sm text-zinc-500">평균 첫 배치 완성</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== PRODUCT PREVIEW ======================== -->
+<section id="preview" class="py-24 md:py-32 px-4 relative overflow-hidden">
+  <div class="orb" style="width:500px;height:500px;background:#16a34a;top:50%;left:50%;margin-top:-250px;margin-left:-250px;opacity:0.06;animation-delay:1s;"></div>
+
+  <div class="max-w-7xl mx-auto">
+    <!-- Section header -->
+    <div class="text-center mb-16 reveal">
+      <div class="eyebrow mb-4">제품 미리보기</div>
+      <h2 class="ko font-display font-800 text-3xl md:text-4xl lg:text-5xl tracking-tight leading-snug text-white mb-4">
+        실제로 이렇게 작동합니다
+      </h2>
+      <p class="ko text-zinc-400 text-lg max-w-xl mx-auto leading-relaxed">
+        쿼터별 포메이션을 선택하면 선발 배치가 즉시 추천됩니다. 탭을 클릭해 각 쿼터를 확인하세요.
+      </p>
+    </div>
+
+    <!-- Interactive preview -->
+    <div class="db-outer reveal d1" style="border-radius:2rem;overflow:hidden;max-width:960px;margin:0 auto;">
+      <div class="db-inner" style="padding:0;background:rgba(10,10,10,0.98);">
+        <!-- App chrome -->
+        <div class="flex items-center gap-3 px-5 py-4 border-b border-white/5">
+          <div class="flex gap-1.5">
+            <div style="width:11px;height:11px;border-radius:50%;background:#ff5f56;"></div>
+            <div style="width:11px;height:11px;border-radius:50%;background:#ffbd2e;"></div>
+            <div style="width:11px;height:11px;border-radius:50%;background:#27c93f;"></div>
+          </div>
+          <div style="background:rgba(255,255,255,0.05);border-radius:6px;padding:3px 14px;font-size:11px;color:rgba(255,255,255,0.3);margin:0 auto;">2026 스프링 리그 3R</div>
+        </div>
+
+        <!-- Quarter tabs -->
+        <div class="flex gap-2 px-5 py-3 border-b border-white/5 overflow-x-auto">
+          <button onclick="setQ(1)" id="qtab-1" class="qtab on flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold border border-white/10 text-zinc-300">1쿼터</button>
+          <button onclick="setQ(2)" id="qtab-2" class="qtab flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold border border-white/10 text-zinc-500">2쿼터</button>
+          <button onclick="setQ(3)" id="qtab-3" class="qtab flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold border border-white/10 text-zinc-500">3쿼터</button>
+          <button onclick="setQ(4)" id="qtab-4" class="qtab flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold border border-white/10 text-zinc-500">4쿼터</button>
+        </div>
+
+        <!-- Main content -->
+        <div class="grid md:grid-cols-5" style="min-height:400px;">
+          <!-- Field -->
+          <div class="md:col-span-3 field-bg relative p-0" style="min-height:380px;" id="field-area">
+            <!-- Center line -->
+            <div class="field-line-h" style="top:50%;"></div>
+            <!-- Center circle -->
+            <div class="field-circle" style="width:70px;height:70px;top:50%;left:50%;margin-top:-35px;margin-left:-35px;"></div>
+            <!-- Penalty areas -->
+            <div style="position:absolute;top:10%;left:25%;width:50%;height:15%;border:1px solid rgba(255,255,255,0.2);border-radius:0;pointer-events:none;"></div>
+            <div style="position:absolute;bottom:10%;left:25%;width:50%;height:15%;border:1px solid rgba(255,255,255,0.2);pointer-events:none;"></div>
+
+            <!-- Formation label -->
+            <div style="position:absolute;top:10px;left:10px;z-index:5;">
+              <div class="eyebrow" id="form-label" style="font-size:9px;padding:3px 10px;gap:4px;">
+                <iconify-icon icon="solar:widget-linear" style="font-size:10px;"></iconify-icon>
+                <span id="form-text">1Q · 4-2-3-1</span>
+              </div>
+            </div>
+
+            <!-- Player layer -->
+            <div id="players-layer" style="position:absolute;inset:0;pointer-events:none;">
+              <!-- Dynamic via JS -->
+            </div>
+          </div>
+
+          <!-- Right panel -->
+          <div class="md:col-span-2 p-5 flex flex-col gap-4 border-t md:border-t-0 md:border-l border-white/5">
+            <!-- Recommendation card -->
+            <div style="background:rgba(22,163,74,0.07);border:1px solid rgba(22,163,74,0.2);border-radius:14px;padding:12px 14px;">
+              <div class="flex items-center gap-2 mb-1">
+                <iconify-icon icon="solar:stars-bold" style="color:#4ade80;font-size:14px;"></iconify-icon>
+                <span class="form-label">출전 균등 추천</span>
+              </div>
+              <p style="font-size:11px;color:rgba(255,255,255,0.5);" class="ko">선수별 출전 쿼터 수를 균등하게 배분합니다. 포메이션 변경 후 즉시 재계산됩니다.</p>
+            </div>
+
+            <!-- Player summary -->
+            <div>
+              <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:8px;">선수별 출전 현황</div>
+              <div id="player-summary" class="flex flex-col gap-1.5">
+                <!-- Dynamic via JS -->
+              </div>
+            </div>
+
+            <!-- Change formation CTA -->
+            <div style="margin-top:auto;">
+              <button class="btn-s w-full flex items-center justify-center gap-2 border border-white/10 rounded-2xl py-3 text-sm text-zinc-300 font-medium">
+                <iconify-icon icon="solar:pen-new-square-linear" style="font-size:16px;color:#4ade80;"></iconify-icon>
+                포메이션 변경하기
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mid CTA -->
+    <div class="text-center mt-12 reveal d2">
+      <a href="/matches/new" class="btn-p inline-flex items-center gap-3 bg-[#16a34a] text-white font-semibold px-8 py-4 rounded-full text-lg min-h-[52px]">
+        직접 만들어보기
+        <span class="arr w-7 h-7 rounded-full bg-black/15 flex items-center justify-center">
+          <iconify-icon icon="solar:arrow-right-linear" style="font-size:13px;"></iconify-icon>
+        </span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== FEATURES BENTO ======================== -->
+<section id="features" class="py-24 md:py-32 px-4">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16 reveal">
+      <div class="eyebrow mb-4">핵심 기능</div>
+      <h2 class="ko font-display font-800 text-3xl md:text-4xl lg:text-5xl tracking-tight leading-snug text-white">
+        복잡한 계산을 서비스가 대신합니다
+      </h2>
+    </div>
+
+    <div class="bento reveal d1">
+      <!-- Large card: Fair distribution -->
+      <div class="b-lg db-outer" style="border-radius:1.75rem;">
+        <div class="db-inner" style="padding:2rem;min-height:320px;display:flex;flex-direction:column;justify-content:space-between;">
+          <div>
+            <div style="width:48px;height:48px;border-radius:14px;background:rgba(22,163,74,0.12);border:1px solid rgba(22,163,74,0.2);display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;">
+              <iconify-icon icon="solar:graph-new-up-linear" style="color:#4ade80;font-size:24px;"></iconify-icon>
+            </div>
+            <h3 class="ko font-display font-800 text-2xl text-white mb-3 leading-snug">공평한 출전 분배</h3>
+            <p class="ko text-zinc-400 leading-relaxed text-base">쿼터별 선발 배치를 자동으로 계산해 모든 선수가 비슷한 횟수로 출전할 수 있게 합니다. 출전 차이로 인한 갈등을 데이터로 해결하세요.</p>
+          </div>
+          <!-- Mini chart visualization -->
+          <div style="margin-top:1.5rem;background:rgba(255,255,255,0.03);border-radius:14px;padding:1rem;">
+            <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;">쿼터별 출전 분포</div>
+            <div class="flex flex-col gap-2">
+              <div class="flex items-center gap-3"><span style="font-size:11px;color:rgba(255,255,255,0.7);width:50px;flex-shrink:0;">임도윤</span><div style="flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,0.06);overflow:hidden;"><div style="width:100%;height:100%;background:linear-gradient(90deg,#16a34a,#22c55e);border-radius:4px;"></div></div><span style="font-size:11px;color:#4ade80;font-weight:700;width:20px;text-align:right;">4</span></div>
+              <div class="flex items-center gap-3"><span style="font-size:11px;color:rgba(255,255,255,0.7);width:50px;flex-shrink:0;">강태민</span><div style="flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,0.06);overflow:hidden;"><div style="width:75%;height:100%;background:linear-gradient(90deg,#16a34a,#22c55e);border-radius:4px;"></div></div><span style="font-size:11px;color:#4ade80;font-weight:700;width:20px;text-align:right;">3</span></div>
+              <div class="flex items-center gap-3"><span style="font-size:11px;color:rgba(255,255,255,0.7);width:50px;flex-shrink:0;">오예린</span><div style="flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,0.06);overflow:hidden;"><div style="width:75%;height:100%;background:linear-gradient(90deg,#16a34a,#22c55e);border-radius:4px;"></div></div><span style="font-size:11px;color:#4ade80;font-weight:700;width:20px;text-align:right;">3</span></div>
+              <div class="flex items-center gap-3"><span style="font-size:11px;color:rgba(255,255,255,0.7);width:50px;flex-shrink:0;">박민준</span><div style="flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,0.06);overflow:hidden;"><div style="width:75%;height:100%;background:linear-gradient(90deg,#16a34a,#22c55e);border-radius:4px;"></div></div><span style="font-size:11px;color:#4ade80;font-weight:700;width:20px;text-align:right;">3</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Small card: Position fit -->
+      <div class="b-sm db-outer" style="border-radius:1.75rem;">
+        <div class="db-inner" style="padding:1.75rem;">
+          <div style="width:44px;height:44px;border-radius:12px;background:rgba(22,163,74,0.1);border:1px solid rgba(22,163,74,0.18);display:flex;align-items:center;justify-content:center;margin-bottom:1rem;">
+            <iconify-icon icon="solar:user-id-bold-duotone" style="color:#4ade80;font-size:22px;"></iconify-icon>
+          </div>
+          <h3 class="ko font-display font-700 text-xl text-white mb-2 leading-snug">포지션 적합성 반영</h3>
+          <p class="ko text-zinc-400 leading-relaxed text-sm">각 선수의 주포지션을 우선해 배치합니다. 필요 시 멀티포지션도 지원합니다.</p>
+        </div>
+      </div>
+
+      <!-- Small card: Instant recalc -->
+      <div class="b-sm db-outer d2" style="border-radius:1.75rem;">
+        <div class="db-inner" style="padding:1.75rem;">
+          <div style="width:44px;height:44px;border-radius:12px;background:rgba(22,163,74,0.1);border:1px solid rgba(22,163,74,0.18);display:flex;align-items:center;justify-content:center;margin-bottom:1rem;">
+            <iconify-icon icon="solar:refresh-circle-bold-duotone" style="color:#4ade80;font-size:22px;"></iconify-icon>
+          </div>
+          <h3 class="ko font-display font-700 text-xl text-white mb-2 leading-snug">포메이션 변경 즉시 재계산</h3>
+          <p class="ko text-zinc-400 leading-relaxed text-sm">쿼터 포메이션을 바꾸면 전체 배치가 즉시 재계산됩니다. 여러 안을 빠르게 비교하세요.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom 2 cards -->
+    <div class="grid md:grid-cols-2 gap-4 mt-4 reveal d2">
+      <div class="db-outer" style="border-radius:1.75rem;">
+        <div class="db-inner" style="padding:1.75rem;display:flex;gap:1rem;align-items:flex-start;">
+          <div style="width:44px;height:44px;border-radius:12px;background:rgba(22,163,74,0.1);border:1px solid rgba(22,163,74,0.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <iconify-icon icon="solar:gallery-send-linear" style="color:#4ade80;font-size:22px;"></iconify-icon>
+          </div>
+          <div>
+            <h3 class="ko font-display font-700 text-xl text-white mb-2 leading-snug">PNG로 바로 공유</h3>
+            <p class="ko text-zinc-400 text-sm leading-relaxed">완성된 필드 배치안을 PNG 이미지로 내보내 카카오톡에 바로 공유하세요. 필드 배치만 깔끔하게 포함됩니다.</p>
+          </div>
+        </div>
+      </div>
+      <div class="db-outer d1" style="border-radius:1.75rem;">
+        <div class="db-inner" style="padding:1.75rem;display:flex;gap:1rem;align-items:flex-start;">
+          <div style="width:44px;height:44px;border-radius:12px;background:rgba(22,163,74,0.1);border:1px solid rgba(22,163,74,0.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <iconify-icon icon="solar:smartphone-linear" style="color:#4ade80;font-size:22px;"></iconify-icon>
+          </div>
+          <div>
+            <h3 class="ko font-display font-700 text-xl text-white mb-2 leading-snug">모바일 완전 지원</h3>
+            <p class="ko text-zinc-400 text-sm leading-relaxed">경기 당일 스마트폰으로도 전체 기능을 그대로 사용할 수 있습니다. 회원가입 없이 3경기까지 무료 저장됩니다.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== HOW IT WORKS ======================== -->
+<section id="how" class="py-24 md:py-32 px-4 border-t border-white/5">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16 reveal">
+      <div class="eyebrow mb-4">사용 방법</div>
+      <h2 class="ko font-display font-800 text-3xl md:text-4xl lg:text-5xl tracking-tight leading-snug text-white">
+        5단계로 끝납니다
+      </h2>
+    </div>
+
+    <div class="grid md:grid-cols-5 gap-4 md:gap-6 reveal d1">
+      <!-- Step 1 -->
+      <div class="db-outer text-center" style="border-radius:1.75rem;">
+        <div class="db-inner" style="padding:1.5rem;display:flex;flex-direction:column;align-items:center;gap:1rem;">
+          <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,rgba(22,163,74,0.2),rgba(22,163,74,0.05));border:1px solid rgba(22,163,74,0.25);display:flex;align-items:center;justify-content:center;">
+            <span style="font-family:'Outfit',sans-serif;font-weight:800;font-size:18px;color:#4ade80;">1</span>
+          </div>
+          <iconify-icon icon="solar:users-group-two-rounded-linear" style="font-size:28px;color:#4ade80;"></iconify-icon>
+          <div>
+            <h4 class="ko font-700 text-white text-base mb-1">선수 등록</h4>
+            <p class="ko text-zinc-500 text-xs leading-relaxed">이름, 포지션, 실력 점수 입력</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arrow -->
+      <div class="hidden md:flex items-center justify-center">
+        <iconify-icon icon="solar:arrow-right-linear" style="font-size:24px;color:rgba(22,163,74,0.4);"></iconify-icon>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="db-outer text-center d1" style="border-radius:1.75rem;">
+        <div class="db-inner" style="padding:1.5rem;display:flex;flex-direction:column;align-items:center;gap:1rem;">
+          <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,rgba(22,163,74,0.2),rgba(22,163,74,0.05));border:1px solid rgba(22,163,74,0.25);display:flex;align-items:center;justify-content:center;">
+            <span style="font-family:'Outfit',sans-serif;font-weight:800;font-size:18px;color:#4ade80;">2</span>
+          </div>
+          <iconify-icon icon="solar:calendar-add-linear" style="font-size:28px;color:#4ade80;"></iconify-icon>
+          <div>
+            <h4 class="ko font-700 text-white text-base mb-1">경기 생성</h4>
+            <p class="ko text-zinc-500 text-xs leading-relaxed">날짜, 참가 선수 선택</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arrow -->
+      <div class="hidden md:flex items-center justify-center">
+        <iconify-icon icon="solar:arrow-right-linear" style="font-size:24px;color:rgba(22,163,74,0.4);"></iconify-icon>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="db-outer text-center d2" style="border-radius:1.75rem;">
+        <div class="db-inner" style="padding:1.5rem;display:flex;flex-direction:column;align-items:center;gap:1rem;">
+          <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,rgba(22,163,74,0.2),rgba(22,163,74,0.05));border:1px solid rgba(22,163,74,0.25);display:flex;align-items:center;justify-content:center;">
+            <span style="font-family:'Outfit',sans-serif;font-weight:800;font-size:18px;color:#4ade80;">3</span>
+          </div>
+          <iconify-icon icon="solar:widget-add-linear" style="font-size:28px;color:#4ade80;"></iconify-icon>
+          <div>
+            <h4 class="ko font-700 text-white text-base mb-1">포메이션 선택</h4>
+            <p class="ko text-zinc-500 text-xs leading-relaxed">쿼터별 포메이션 설정</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-4 md:gap-6 mt-4 md:mt-6 max-w-3xl mx-auto reveal d2">
+      <!-- Step 4 -->
+      <div class="db-outer text-center" style="border-radius:1.75rem;">
+        <div class="db-inner" style="padding:1.5rem;display:flex;flex-direction:column;align-items:center;gap:1rem;">
+          <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,rgba(22,163,74,0.2),rgba(22,163,74,0.05));border:1px solid rgba(22,163,74,0.25);display:flex;align-items:center;justify-content:center;">
+            <span style="font-family:'Outfit',sans-serif;font-weight:800;font-size:18px;color:#4ade80;">4</span>
+          </div>
+          <iconify-icon icon="solar:check-circle-bold-duotone" style="font-size:28px;color:#4ade80;"></iconify-icon>
+          <div>
+            <h4 class="ko font-700 text-white text-base mb-1">추천 결과 확인</h4>
+            <p class="ko text-zinc-500 text-xs leading-relaxed">자동 추천 배치 검토 및 수정</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arrow -->
+      <div class="hidden md:flex items-center justify-center">
+        <iconify-icon icon="solar:arrow-right-linear" style="font-size:24px;color:rgba(22,163,74,0.4);"></iconify-icon>
+      </div>
+
+      <!-- Step 5 -->
+      <div class="db-outer text-center d1" style="border-radius:1.75rem;">
+        <div class="db-inner" style="padding:1.5rem;display:flex;flex-direction:column;align-items:center;gap:1rem;">
+          <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,rgba(22,163,74,0.2),rgba(22,163,74,0.05));border:1px solid rgba(22,163,74,0.25);display:flex;align-items:center;justify-content:center;">
+            <span style="font-family:'Outfit',sans-serif;font-weight:800;font-size:18px;color:#4ade80;">5</span>
+          </div>
+          <iconify-icon icon="solar:export-linear" style="font-size:28px;color:#4ade80;"></iconify-icon>
+          <div>
+            <h4 class="ko font-700 text-white text-base mb-1">저장·공유</h4>
+            <p class="ko text-zinc-500 text-xs leading-relaxed">PNG 내보내기 또는 저장</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== TESTIMONIALS ======================== -->
+<section id="testimonials" class="py-24 md:py-32 px-4 border-t border-white/5">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16 reveal">
+      <div class="eyebrow mb-4">사용자 후기</div>
+      <h2 class="ko font-display font-800 text-3xl md:text-4xl lg:text-5xl tracking-tight leading-snug text-white">
+        감독들이 먼저 경험했습니다
+      </h2>
+    </div>
+
+    <div class="test-grid reveal d1">
+      <!-- Testimonial 1 -->
+      <div class="db-outer" style="border-radius:1.75rem;">
+        <div class="db-inner" style="padding:1.75rem;display:flex;flex-direction:column;gap:1rem;">
+          <div class="flex gap-1">
+            <iconify-icon icon="solar:star-bold" style="color:#facc15;font-size:14px;"></iconify-icon>
+            <iconify-icon icon="solar:star-bold" style="color:#facc15;font-size:14px;"></iconify-icon>
+            <iconify-icon icon="solar:star-bold" style="color:#facc15;font-size:14px;"></iconify-icon>
+            <iconify-icon icon="solar:star-bold" style="color:#facc15;font-size:14px;"></iconify-icon>
+            <iconify-icon icon="solar:star-bold" style="color:#facc15;font-size:14px;"></iconify-icon>
+          </div>
+          <p class="ko text-zinc-300 leading-relaxed text-sm">"매 경기 메모장에 선수 이름 적고 출전 횟수 계산하던 시절이 없어졌어요. 이제 경기 전 5분이면 배치가 끝납니다. 출전 불만도 줄었습니다."</p>
+          <div class="flex items-center gap-3 mt-auto pt-2 border-t border-white/5">
+            <img src="https://i.pravatar.cc/150?u=jungminjun" alt="정민준" width="36" height="36" style="border-radius:50%;border:2px solid rgba(22,163,74,0.3);" loading="lazy" decoding="async">
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#fff;">정민준</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.4);" class="ko">강남 FC 대표</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Testimonial 2 (middle, slightly different height) -->
+      <div class="db-outer d1" style="border-radius:1.75rem;">
+        <div class="db-inner" style="padding:1.75rem;display:flex;flex-direction:column;gap:1rem;">
+          <div class="flex gap-1">
+            <iconify-icon icon="solar:star-bold" style="color:#facc15;font-size:14px;"></iconify-icon>
+            <iconify-icon icon="solar:star-bold" style="color:#facc15;font-size:14px;"></iconify-icon>
+            <iconify-icon icon="solar:star-bold" style="color:#facc15;font-size:14px;"></iconify-icon>
+            <iconify-icon icon="solar:star-bold" style="color:#facc15;font-size:14px;"></iconify-icon>
+            <iconify-icon icon="solar:star-bold" style="color:#facc15;font-size:14px;"></iconify-icon>
+          </div>
+          <p class="ko text-zinc-300 leading-relaxed text-sm">"출전 공평성 때문에 팀원들 사이에 갈등이 생겼었는데, 이제 숫자로 보여줄 수 있으니 설득이 훨씬 쉬워졌습니다. 포메이션 바꿔도 즉시 재계산되는 게 특히 좋아요."</p>
+          <div class="flex items-center gap-3 mt-auto pt-2 border-t border-white/5">
+            <img src="https://i.pravatar.cc/150?u=hayunseo" alt="하윤서" width="36" height="36" style="border-radius:50%;border:2px solid rgba(22,163,74,0.3);" loading="lazy" decoding="async">
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#fff;">하윤서</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.4);" class="ko">마포 풋살 팀장</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Testimonial 3 -->
+      <div class="db-outer d2" style="border-radius:1.75rem;">
+        <div class="db-inner" style="padding:1.75rem;display:flex;flex-direction:column;gap:1rem;">
+          <div class="flex gap-1">
+            <iconify-icon icon="solar:star-bold" style="color:#facc15;font-size:14px;"></iconify-icon>
+            <iconify-icon icon="solar:star-bold" style="color:#facc15;font-size:14px;"></iconify-icon>
+            <iconify-icon icon="solar:star-bold" style="color:#facc15;font-size:14px;"></iconify-icon>
+            <iconify-icon icon="solar:star-bold" style="color:#facc15;font-size:14px;"></iconify-icon>
+            <iconify-icon icon="solar:star-half-bold" style="color:#facc15;font-size:14px;"></iconify-icon>
+          </div>
+          <p class="ko text-zinc-300 leading-relaxed text-sm">"PNG로 바로 내보내서 카카오톡에 공유하는 기능이 제일 편합니다. 경기 당일 선수들한테 배치 이미지 보내주면 다들 바로 이해해요."</p>
+          <div class="flex items-center gap-3 mt-auto pt-2 border-t border-white/5">
+            <img src="https://i.pravatar.cc/150?u=leeseojin" alt="이서진" width="36" height="36" style="border-radius:50%;border:2px solid rgba(22,163,74,0.3);" loading="lazy" decoding="async">
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#fff;">이서진</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.4);" class="ko">성동구 축구동호회 감독</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== CTA ======================== -->
+<section id="cta" class="relative py-32 md:py-40 px-4 overflow-hidden">
+  <!-- Full-bleed green glow -->
+  <div class="orb" style="width:700px;height:700px;background:#16a34a;top:50%;left:50%;margin-top:-350px;margin-left:-350px;opacity:0.1;animation-delay:0s;"></div>
+  <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent,rgba(5,5,5,0.4),transparent);pointer-events:none;"></div>
+
+  <div class="max-w-4xl mx-auto text-center relative z-10">
+    <div class="reveal">
+      <div class="eyebrow mb-6 mx-auto w-max">무료로 사용하기</div>
+      <h2 class="ko font-display font-900 text-4xl md:text-5xl lg:text-6xl tracking-tight leading-snug text-white mb-6">
+        지금 바로 시작해보세요.
+      </h2>
+      <p class="ko text-zinc-400 text-xl leading-relaxed mb-10 max-w-xl mx-auto">
+        첫 경기 배치를 3분 안에 완성하세요.<br>회원가입 없이 바로 사용할 수 있습니다.
+      </p>
+
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="/matches/new" class="btn-p flex items-center gap-3 bg-[#16a34a] hover:bg-[#15803d] text-white font-700 px-10 py-5 rounded-full text-xl min-h-[60px]">
+          무료로 시작하기
+          <span class="arr w-8 h-8 rounded-full bg-black/15 flex items-center justify-center">
+            <iconify-icon icon="solar:arrow-right-linear" style="font-size:14px;"></iconify-icon>
+          </span>
+        </a>
+      </div>
+
+      <!-- Trust badges -->
+      <div class="flex flex-wrap items-center justify-center gap-4 mt-10">
+        <div class="flex items-center gap-2 text-sm text-zinc-500">
+          <iconify-icon icon="solar:shield-check-linear" style="color:#4ade80;font-size:16px;"></iconify-icon>
+          <span class="ko">회원가입 불필요</span>
+        </div>
+        <div class="flex items-center gap-2 text-sm text-zinc-500">
+          <iconify-icon icon="solar:smartphone-linear" style="color:#4ade80;font-size:16px;"></iconify-icon>
+          <span class="ko">모바일 완전 지원</span>
+        </div>
+        <div class="flex items-center gap-2 text-sm text-zinc-500">
+          <iconify-icon icon="solar:cloud-storage-linear" style="color:#4ade80;font-size:16px;"></iconify-icon>
+          <span class="ko">3경기 무료 저장</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================== FOOTER ======================== -->
+<footer class="border-t border-white/5 py-12 px-4">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+      <!-- Logo -->
+      <div class="flex items-center gap-2">
+        <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#16a34a,#15803d);display:flex;align-items:center;justify-content:center;">
+          <iconify-icon icon="solar:football-linear" style="color:#fff;font-size:15px;"></iconify-icon>
+        </div>
+        <span class="font-display font-800 text-white">SquadMaker</span>
+      </div>
+
+      <!-- Links -->
+      <nav class="flex flex-wrap items-center gap-6 text-sm">
+        <a href="#features" class="footer-link text-zinc-500 ko">기능</a>
+        <a href="#how" class="footer-link text-zinc-500 ko">사용법</a>
+        <a href="#testimonials" class="footer-link text-zinc-500 ko">사용자 후기</a>
+        <a href="/matches/new" class="footer-link text-zinc-500 ko">바로 시작하기</a>
+      </nav>
+
+      <!-- Copyright -->
+      <div class="text-zinc-600 text-sm ko">© 2026 SquadMaker</div>
+    </div>
+  </div>
+</footer>
+
+<!-- ======================== SCRIPTS ======================== -->
+<script>
+  // Scroll-triggered reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Nav scroll style
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 60) nav.classList.add('scrolled');
+    else nav.classList.remove('scrolled');
+  }, { passive: true });
+
+  // Mobile menu
+  const mobBtn = document.getElementById('mob-btn');
+  const mobMenu = document.getElementById('mob-menu');
+  const mobClose = document.getElementById('mob-close');
+  const mobLinks = document.querySelectorAll('.mob-link');
+
+  function openMenu() {
+    mobMenu.style.display = 'flex';
+    setTimeout(() => {
+      mobLinks.forEach((l, i) => {
+        setTimeout(() => {
+          l.style.opacity = '1';
+          l.style.transform = 'translateY(0)';
+          l.style.transition = 'all 0.5s cubic-bezier(0.16,1,0.3,1)';
+        }, i * 60);
+      });
+    }, 10);
+  }
+
+  function closeMenu() {
+    mobLinks.forEach(l => { l.style.opacity = '0'; l.style.transform = 'translateY(2rem)'; });
+    setTimeout(() => { mobMenu.style.display = 'none'; }, 300);
+  }
+
+  mobBtn.addEventListener('click', openMenu);
+  mobClose.addEventListener('click', closeMenu);
+  mobMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
+
+  // Quarter tab formations data
+  const formations = {
+    1: {
+      label: '1Q · 4-2-3-1',
+      players: [
+        { name: '임도윤', abbr: '임', pos: 'FW', left: '50%', top: '10%' },
+        { name: '윤서율', abbr: '윤', pos: 'MF', left: '18%', top: '30%' },
+        { name: '강태민', abbr: '강', pos: 'MF', left: '50%', top: '30%' },
+        { name: '배성현', abbr: '배', pos: 'MF', left: '82%', top: '30%' },
+        { name: '오승원', abbr: '오', pos: 'MF', left: '36%', top: '50%' },
+        { name: '한지원', abbr: '한', pos: 'MF', left: '64%', top: '50%' },
+        { name: '이서준', abbr: '이', pos: 'DF', left: '10%', top: '68%' },
+        { name: '최도현', abbr: '최', pos: 'DF', left: '36%', top: '68%' },
+        { name: '김태양', abbr: '김', pos: 'DF', left: '64%', top: '68%' },
+        { name: '정하윤', abbr: '정', pos: 'DF', left: '90%', top: '68%' },
+        { name: '박민준', abbr: '박', pos: 'GK', left: '50%', top: '87%' },
+      ],
+      summary: [
+        { name: '임도윤', quarters: [1,0,0,0] },
+        { name: '강태민', quarters: [1,0,0,0] },
+        { name: '오승원', quarters: [1,0,0,0] },
+        { name: '박민준', quarters: [1,0,0,0] },
+        { name: '오예린', quarters: [0,0,0,0] },
+      ]
+    },
+    2: {
+      label: '2Q · 4-3-3',
+      players: [
+        { name: '박성준', abbr: '박', pos: 'FW', left: '18%', top: '12%' },
+        { name: '김지훈', abbr: '김', pos: 'FW', left: '50%', top: '12%' },
+        { name: '오예린', abbr: '오', pos: 'FW', left: '82%', top: '12%' },
+        { name: '이현수', abbr: '이', pos: 'MF', left: '20%', top: '40%' },
+        { name: '최승호', abbr: '최', pos: 'MF', left: '50%', top: '40%' },
+        { name: '한도현', abbr: '한', pos: 'MF', left: '80%', top: '40%' },
+        { name: '윤재원', abbr: '윤', pos: 'DF', left: '10%', top: '65%' },
+        { name: '장민재', abbr: '장', pos: 'DF', left: '36%', top: '65%' },
+        { name: '송태양', abbr: '송', pos: 'DF', left: '64%', top: '65%' },
+        { name: '임서준', abbr: '임', pos: 'DF', left: '90%', top: '65%' },
+        { name: '정우성', abbr: '정', pos: 'GK', left: '50%', top: '87%' },
+      ],
+      summary: [
+        { name: '임도윤', quarters: [1,0,0,0] },
+        { name: '강태민', quarters: [1,0,0,0] },
+        { name: '오예린', quarters: [0,1,0,0] },
+        { name: '박민준', quarters: [1,0,0,0] },
+        { name: '김지훈', quarters: [0,1,0,0] },
+      ]
+    },
+    3: {
+      label: '3Q · 4-4-2',
+      players: [
+        { name: '임도윤', abbr: '임', pos: 'FW', left: '36%', top: '12%' },
+        { name: '오예린', abbr: '오', pos: 'FW', left: '64%', top: '12%' },
+        { name: '윤서율', abbr: '윤', pos: 'MF', left: '14%', top: '40%' },
+        { name: '강태민', abbr: '강', pos: 'MF', left: '38%', top: '40%' },
+        { name: '배성현', abbr: '배', pos: 'MF', left: '62%', top: '40%' },
+        { name: '한지원', abbr: '한', pos: 'MF', left: '86%', top: '40%' },
+        { name: '이서준', abbr: '이', pos: 'DF', left: '10%', top: '66%' },
+        { name: '최도현', abbr: '최', pos: 'DF', left: '36%', top: '66%' },
+        { name: '김태양', abbr: '김', pos: 'DF', left: '64%', top: '66%' },
+        { name: '정하윤', abbr: '정', pos: 'DF', left: '90%', top: '66%' },
+        { name: '박민준', abbr: '박', pos: 'GK', left: '50%', top: '87%' },
+      ],
+      summary: [
+        { name: '임도윤', quarters: [1,0,1,0] },
+        { name: '강태민', quarters: [1,0,1,0] },
+        { name: '오예린', quarters: [0,1,1,0] },
+        { name: '박민준', quarters: [1,0,1,0] },
+        { name: '오승원', quarters: [1,0,0,0] },
+      ]
+    },
+    4: {
+      label: '4Q · 4-2-3-1',
+      players: [
+        { name: '김지훈', abbr: '김', pos: 'FW', left: '50%', top: '10%' },
+        { name: '박성준', abbr: '박', pos: 'MF', left: '18%', top: '30%' },
+        { name: '이현수', abbr: '이', pos: 'MF', left: '50%', top: '30%' },
+        { name: '한도현', abbr: '한', pos: 'MF', left: '82%', top: '30%' },
+        { name: '오승원', abbr: '오', pos: 'MF', left: '36%', top: '50%' },
+        { name: '송태양', abbr: '송', pos: 'MF', left: '64%', top: '50%' },
+        { name: '윤재원', abbr: '윤', pos: 'DF', left: '10%', top: '68%' },
+        { name: '장민재', abbr: '장', pos: 'DF', left: '36%', top: '68%' },
+        { name: '임서준', abbr: '임', pos: 'DF', left: '64%', top: '68%' },
+        { name: '최승호', abbr: '최', pos: 'DF', left: '90%', top: '68%' },
+        { name: '정우성', abbr: '정', pos: 'GK', left: '50%', top: '87%' },
+      ],
+      summary: [
+        { name: '임도윤', quarters: [1,0,1,0] },
+        { name: '강태민', quarters: [1,0,1,0] },
+        { name: '오예린', quarters: [0,1,1,0] },
+        { name: '박민준', quarters: [1,0,1,0] },
+        { name: '김지훈', quarters: [0,1,0,1] },
+      ]
+    }
+  };
+
+  function setQ(q) {
+    // Update tabs
+    [1,2,3,4].forEach(i => {
+      const tab = document.getElementById('qtab-' + i);
+      if (i === q) tab.classList.add('on');
+      else tab.classList.remove('on');
+    });
+
+    const data = formations[q];
+
+    // Update formation label
+    document.getElementById('form-text').textContent = data.label;
+
+    // Render players
+    const layer = document.getElementById('players-layer');
+    layer.innerHTML = '';
+    data.players.forEach(p => {
+      const div = document.createElement('div');
+      div.className = 'player-b';
+      div.style.left = p.left;
+      div.style.top = p.top;
+      const isGk = p.pos === 'GK';
+      div.innerHTML = `<div class="player-dot${isGk ? ' gk' : ''}">${p.abbr}</div><div class="player-nm">${p.name}</div>`;
+      layer.appendChild(div);
+    });
+
+    // Render summary
+    const sumEl = document.getElementById('player-summary');
+    sumEl.innerHTML = '';
+    data.summary.forEach(p => {
+      const div = document.createElement('div');
+      div.style.cssText = 'display:flex;align-items:center;justify-content:space-between;';
+      const dots = p.quarters.map(v => {
+        const active = v === 1;
+        return `<div style="width:18px;height:18px;border-radius:5px;background:${active ? 'rgba(22,163,74,0.7)' : 'rgba(255,255,255,0.06)'};font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;color:${active ? '#fff' : 'rgba(255,255,255,0.25)'};">${active ? p.quarters.indexOf(v) + 1 : '·'}</div>`;
+      }).join('');
+      const total = p.quarters.reduce((a, b) => a + b, 0);
+      div.innerHTML = `<span style="font-size:12px;color:rgba(255,255,255,0.75);">${p.name}</span><div style="display:flex;gap:3px;align-items:center;">${dots}<span style="font-size:11px;font-weight:700;color:#4ade80;margin-left:6px;">${total}Q</span></div>`;
+      sumEl.appendChild(div);
+    });
+  }
+
+  // Init
+  setQ(1);
+
+  // Smooth scroll for nav links
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+</script>
+</body>
+</html>
