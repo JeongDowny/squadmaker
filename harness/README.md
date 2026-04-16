@@ -17,12 +17,14 @@
 
 ## Suggested loop
 1. active exec-plan을 갱신한다.
-2. `npm run harness:seed`
-3. 구현한다.
-4. `npm run harness:repo`
-5. `npm run harness:scenarios`
-6. UI 변경이면 `npm run harness:capture`
-7. `npm run harness:report`
-8. execution log를 남긴다.
+2. `npm run harness:prompt-log -- --pr PR-001 --title "..."`로 prompt log 틀을 만든다.
+3. `npm run harness:seed`
+4. 구현한다.
+5. `npm run harness:repo`
+6. `npm run harness:scenarios`
+7. UI 변경이면 `npm run harness:capture`
+8. `npm run harness:report`
+9. execution log와 prompt log를 함께 남긴다.
 
 `npm run harness:capture`는 현재 Playwright visual test를 실행해 데스크톱/모바일 스크린샷을 `harness/reports/latest/screenshots/`에 저장한다.
+`npm run harness:prompt-log`는 `docs/prompt-logs/YYYY-MM-DD.md` 파일과 PR 섹션 템플릿을 생성한다.

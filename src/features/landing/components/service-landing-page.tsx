@@ -1,226 +1,221 @@
 import Link from "next/link";
-import { MockLineupPreview } from "@/features/landing/components/mock-lineup-preview";
 
 const flowSteps = [
   {
-    step: "01",
-    title: "경기를 만들고",
-    description: "경기 제목과 날짜, 총 쿼터 수를 정하면 바로 배치 준비가 시작된다.",
+    title: "팀 관리",
+    description: "선수 이름과 주포지션을 먼저 정리",
   },
   {
-    step: "02",
-    title: "선수를 고르고",
-    description: "참가 선수와 포지션 정보를 정리하면 어떤 자원이 있는지 바로 보이기 시작한다.",
+    title: "경기 생성",
+    description: "오늘 경기와 쿼터를 만든다",
   },
   {
-    step: "03",
-    title: "쿼터별 포메이션을 고른다",
-    description: "각 쿼터에 어떤 틀을 쓸지 먼저 정하면 추천도 그 흐름에 맞춰 정리된다.",
+    title: "포메이션 설정",
+    description: "쿼터마다 실제 포메이션을 선택",
   },
   {
-    step: "04",
-    title: "추천안을 비교하고",
-    description: "A, B, C 추천안을 보면서 지금 경기에서 어떤 균형이 더 맞는지 바로 판단할 수 있다.",
+    title: "출전 균등 추천",
+    description: "선수별 출전 쿼터 수를 맞춘다",
   },
   {
-    step: "05",
-    title: "수정하고 저장한다",
-    description: "마음에 드는 안을 고른 뒤 직접 바꾸고, 마지막에 최종 배치만 저장하면 된다.",
+    title: "필드 확인",
+    description: "추천 후 포메이션을 다시 조정",
   },
 ] as const;
 
-const navItems = [
-  { href: "#service-preview", label: "서비스 예시" },
-  { href: "#how-it-works", label: "사용 흐름" },
+const rosterRows = [
+  ["민준", "GK", "2쿼터"],
+  ["지훈", "LB", "2쿼터"],
+  ["도윤", "CB", "2쿼터"],
+  ["이안", "ST", "2쿼터"],
+] as const;
+
+const lineupSlots = [
+  { name: "이안", role: "ST", top: "17%", left: "50%" },
+  { name: "하준", role: "LW", top: "28%", left: "24%" },
+  { name: "유찬", role: "RW", top: "28%", left: "76%" },
+  { name: "시우", role: "CM", top: "47%", left: "35%" },
+  { name: "예준", role: "CDM", top: "53%", left: "50%" },
+  { name: "건우", role: "CM", top: "47%", left: "65%" },
+  { name: "지훈", role: "LB", top: "72%", left: "22%" },
+  { name: "도윤", role: "CB", top: "74%", left: "42%" },
+  { name: "현우", role: "CB", top: "74%", left: "58%" },
+  { name: "준서", role: "RB", top: "72%", left: "78%" },
+  { name: "민준", role: "GK", top: "88%", left: "50%" },
 ] as const;
 
 export function ServiceLandingPage() {
   return (
-    <>
-      <header className="sticky top-0 z-20 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
-          <Link href="/" className="text-lg font-semibold tracking-tight text-slate-950">
+    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-7 px-5 py-8 sm:px-8 sm:py-10">
+      <section className="grid gap-8 rounded-[38px] border border-emerald-200 bg-[radial-gradient(circle_at_top_left,rgba(52,211,153,0.2),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(240,253,244,0.96),rgba(248,250,252,0.98))] px-5 py-7 shadow-[0_36px_120px_-86px_rgba(15,118,110,0.78)] sm:px-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-center lg:px-10">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
             SquadMaker
-          </Link>
-
-          <nav className="hidden items-center gap-6 md:flex">
-            {navItems.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                className="text-sm font-medium text-slate-600 transition hover:text-slate-950"
-              >
-                {item.label}
-              </a>
-            ))}
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <a
-              href="#service-preview"
-              className="hidden rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-950 hover:text-slate-950 sm:inline-flex"
-            >
-              예시 보기
-            </a>
+          </p>
+          <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+            축구 동호회 라인업을 쿼터별로 빠르게 맞춥니다
+          </h1>
+          <p className="mt-4 max-w-2xl text-base leading-8 text-slate-600">
+            쿼터별 포메이션과 선수 출전 수를 한 화면에서 맞추고, 추천 이후에도
+            포메이션을 다시 조정할 수 있는 경기 준비 도구입니다.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              href="/harness"
-              className="rounded-full bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+              href="/players"
+              className="rounded-full border border-slate-300 bg-white/92 px-5 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
             >
-              하네스
+              팀 관리 보기
+            </Link>
+            <Link
+              href="/matches/new"
+              className="rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+            >
+              새 경기 만들기
             </Link>
           </div>
         </div>
-      </header>
 
-      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-10 px-5 py-6 sm:px-8 sm:py-10">
-        <section className="overflow-hidden rounded-[40px] border border-emerald-200 bg-[radial-gradient(circle_at_top_left,rgba(52,211,153,0.2),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(56,189,248,0.14),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(240,253,244,0.96),rgba(239,246,255,0.96))] p-6 shadow-[0_34px_120px_-72px_rgba(15,118,110,0.8)] sm:p-8 lg:p-10">
-          <div className="max-w-4xl space-y-6">
-            <div className="inline-flex rounded-full border border-emerald-300 bg-white/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-emerald-800">
-              SquadMaker
-            </div>
+        <ServiceFlowMock />
+      </section>
 
-            <div className="space-y-4">
-              <h1 className="max-w-4xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl xl:text-6xl">
-                여러 쿼터의 선발 배치를 한 번에 보고 더 빠르게 정리하세요
-              </h1>
-              <p className="max-w-3xl text-base leading-8 text-slate-600">
-                경기 전에 가장 오래 걸리는 건 선수 배치를 다시 세고 다시 맞추는 일이다.
-                SquadMaker는 쿼터별 포메이션, 추천안, 출전 요약을 한 화면에 모아둬서
-                빠르게 보고 바로 고칠 수 있게 만든다.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              <a
-                href="#service-preview"
-                className="rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
-              >
-                서비스 예시 보기
-              </a>
-              <a
-                href="#how-it-works"
-                className="rounded-full border border-slate-300 bg-white/90 px-5 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
-              >
-                어떻게 쓰는지 보기
-              </a>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-3">
-              <HeroStat value="4Q" label="쿼터별 배치 확인" />
-              <HeroStat value="A/B/C" label="추천안 비교" />
-              <HeroStat value="즉시" label="수정 후 재정리" />
-            </div>
+      <section className="rounded-[34px] border border-slate-200 bg-white/92 px-5 py-6 shadow-[0_28px_88px_-72px_rgba(15,23,42,0.72)] sm:px-7">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
+              Service Flow
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+              실제 이용 흐름
+            </h2>
           </div>
-        </section>
+          <p className="max-w-xl text-sm leading-7 text-slate-600">
+            팀 명단을 정리한 뒤 경기에서 쿼터와 포메이션을 만들고, 출전 쿼터 수
+            기준 추천을 받아 필드에서 확인합니다.
+          </p>
+        </div>
 
-        <section
-          id="service-preview"
-          className="rounded-[36px] border border-slate-200 bg-white/82 p-4 shadow-[0_30px_90px_-64px_rgba(15,23,42,0.7)] sm:p-6"
-        >
-          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
-                Service Example
+        <div className="mt-6 grid gap-3 md:grid-cols-5">
+          {flowSteps.map((step, index) => (
+            <article
+              key={step.title}
+              className="rounded-[24px] border border-slate-200 bg-slate-50/84 px-4 py-4"
+            >
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                Step {index + 1}
               </p>
-              <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
-                쿼터를 바꿔가며 결과 화면을 바로 살펴볼 수 있습니다
-              </h2>
-              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
-                아래 예시는 실제 경기 전에 가장 먼저 확인하게 될 화면이다. 쿼터 버튼을
-                눌러 포메이션과 선발 배치를 비교하고, 오른쪽에서 추천안과 전체 출전 요약을
-                같이 확인할 수 있다.
-              </p>
-            </div>
+              <h3 className="mt-3 text-base font-semibold text-slate-950">{step.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{step.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
 
-            <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700">
-              interactive mock
-            </div>
+      <section className="rounded-[34px] border border-emerald-200 bg-[linear-gradient(135deg,rgba(236,253,245,0.98),rgba(255,255,255,0.96),rgba(240,249,255,0.96))] px-5 py-7 shadow-[0_30px_90px_-66px_rgba(15,118,110,0.62)] sm:px-7">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
+              Next Step
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+              경기 목록에서 오늘 경기 준비를 시작하세요
+            </h2>
+            <p className="mt-2 text-sm leading-7 text-slate-600">
+              경기 관리에서 경기 초안을 만들고, 편집 화면에서 쿼터와 포메이션을
+              설정한 뒤 출전 균등 추천을 실행합니다.
+            </p>
           </div>
-
-          <MockLineupPreview />
-        </section>
-
-        <section
-          id="how-it-works"
-          className="rounded-[36px] border border-slate-200 bg-slate-950 px-6 py-7 text-slate-100 shadow-[0_30px_90px_-62px_rgba(15,23,42,0.9)] sm:px-8 sm:py-8"
-        >
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-3xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-300">
-                How It Works
-              </p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white">
-                경기 하나를 정리하는 흐름을 짧게 만들었습니다
-              </h2>
-              <p className="mt-3 text-sm leading-7 text-slate-300 sm:text-base">
-                처음부터 복잡한 설정을 오래 붙잡지 않아도 된다. 경기와 선수를 정리하고,
-                쿼터별 포메이션을 고른 다음, 추천안을 보고 손으로 조금만 다듬으면 끝난다.
-              </p>
-            </div>
-
-            <div className="rounded-[24px] border border-white/10 bg-white/6 px-5 py-4 text-sm leading-7 text-slate-300">
-              예시 화면을 한 번 보고 나면 어떤 식으로 배치를 읽고 고치게 될지 바로 감이
-              오도록 구성했다.
-            </div>
-          </div>
-
-          <div className="mt-6 grid gap-4 lg:grid-cols-5">
-            {flowSteps.map((step) => (
-              <article
-                key={step.step}
-                className="rounded-[24px] border border-white/10 bg-white/6 px-5 py-5"
-              >
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">
-                  Step {step.step}
-                </p>
-                <h3 className="mt-3 text-lg font-semibold text-white">{step.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-300">{step.description}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="rounded-[36px] border border-emerald-200 bg-[linear-gradient(135deg,rgba(236,253,245,0.98),rgba(255,255,255,0.96),rgba(240,249,255,0.96))] px-6 py-8 shadow-[0_30px_90px_-64px_rgba(15,118,110,0.65)] sm:px-8">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div className="max-w-3xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
-                CTA
-              </p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
-                예시 화면으로 감을 잡고 바로 다음 단계로 넘어가면 됩니다
-              </h2>
-              <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base">
-                먼저 결과 화면이 어떻게 보이는지 확인하고, 익숙해지면 실제 경기 입력
-                흐름으로 자연스럽게 넘어갈 수 있도록 잡아둔 랜딩이다.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              <a
-                href="#service-preview"
-                className="rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
-              >
-                예시 팀 체험 보기
-              </a>
-              <a
-                href="#how-it-works"
-                className="rounded-full border border-slate-300 bg-white/90 px-5 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-950 hover:text-slate-950"
-              >
-                사용 흐름 보기
-              </a>
-            </div>
-          </div>
-        </section>
-      </main>
-    </>
+          <Link
+            href="/matches"
+            className="inline-flex justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+          >
+            경기 관리로 이동
+          </Link>
+        </div>
+      </section>
+    </main>
   );
 }
 
-function HeroStat({ value, label }: { value: string; label: string }) {
+function ServiceFlowMock() {
   return (
-    <div className="rounded-[22px] border border-slate-200 bg-white/72 px-4 py-4 shadow-[0_16px_40px_-34px_rgba(15,23,42,0.7)]">
-      <p className="text-2xl font-semibold text-slate-950">{value}</p>
-      <p className="mt-1 text-sm text-slate-600">{label}</p>
+    <div className="rounded-[30px] border border-slate-200 bg-slate-950 p-2 shadow-[0_28px_80px_-48px_rgba(15,23,42,0.9)]">
+      <div className="rounded-[24px] bg-white p-3">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+          <div className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
+            <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+          </div>
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-500">
+            경기 준비 화면
+          </span>
+        </div>
+
+        <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_0.78fr]">
+          <div className="rounded-[24px] bg-[linear-gradient(180deg,#166b4b,#0c4738)] p-3">
+            <div className="flex items-center justify-between text-emerald-50">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-100/80">
+                  1Q
+                </p>
+                <p className="text-sm font-semibold">4-3-3 출전 균등 추천</p>
+              </div>
+              <span className="rounded-full bg-white/12 px-3 py-1 text-[11px] font-semibold">
+                변경 가능
+              </span>
+            </div>
+
+            <div className="relative mt-3 aspect-[7/8] overflow-hidden rounded-[22px] border border-white/20 bg-white/5">
+              <div className="absolute inset-3 rounded-[18px] border border-white/24" />
+              <div className="absolute left-1/2 top-1/2 h-px w-[calc(100%-1.5rem)] -translate-x-1/2 bg-white/22" />
+              <div className="absolute left-1/2 top-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/22" />
+              <div className="absolute bottom-3 left-1/2 h-[18%] w-[58%] -translate-x-1/2 rounded-t-[20px] border border-b-0 border-white/22" />
+              {lineupSlots.map((slot) => (
+                <div
+                  key={`${slot.role}-${slot.name}`}
+                  className="absolute -translate-x-1/2 -translate-y-1/2 rounded-[14px] bg-white/94 px-2 py-1.5 text-center shadow-[0_14px_28px_-22px_rgba(0,0,0,0.9)]"
+                  style={{ top: slot.top, left: slot.left }}
+                >
+                  <p className="text-[9px] font-semibold text-emerald-700">{slot.role}</p>
+                  <p className="mt-0.5 text-[11px] font-semibold text-slate-950">{slot.name}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid gap-3">
+            <div className="rounded-[22px] border border-slate-200 bg-slate-50 px-4 py-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-slate-950">선수 관리</p>
+                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+                  참가 명단
+                </span>
+              </div>
+              <div className="mt-3 space-y-2">
+                {rosterRows.map(([name, position, appearances]) => (
+                  <div
+                    key={name}
+                    className="flex items-center justify-between rounded-2xl bg-white px-3 py-2 text-sm"
+                  >
+                    <div>
+                      <p className="font-semibold text-slate-950">{name}</p>
+                      <p className="text-xs text-slate-500">{position}</p>
+                    </div>
+                    <span className="text-xs font-semibold text-slate-500">{appearances}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-[22px] border border-emerald-200 bg-emerald-50 px-4 py-4">
+              <p className="text-sm font-semibold text-emerald-950">추천 후에도 수정</p>
+              <p className="mt-2 text-sm leading-6 text-emerald-800">
+                쿼터 포메이션을 바꾸면 같은 참가 명단 기준으로 배치를 다시 계산합니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

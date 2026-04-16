@@ -9,8 +9,8 @@ test("capture landing screenshots for current viewport", async ({ page }, testIn
 
   await page.goto("/");
 
-  await expect(page.getByText("Service Example")).toBeVisible();
-  await expect(page.getByText("Tactical Board")).toBeVisible();
+  await expect(page.getByText("경기 준비 화면")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "실제 이용 흐름" })).toBeVisible();
 
   const fileName =
     testInfo.project.name === "chromium-mobile" ? "landing-mobile.png" : "landing-desktop.png";

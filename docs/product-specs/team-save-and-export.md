@@ -37,7 +37,7 @@
 비로그인 사용자는 localStorage 기반으로 저장한다.
 
 정책:
-- 저장 가능한 경기는 1개
+- 저장 가능한 경기는 최대 3개
 - 저장은 임시 저장 성격으로 본다
 - 브라우저 환경에 종속된다
 - 다른 기기와 동기화되지 않는다
@@ -116,9 +116,9 @@ PNG에 포함되지 않는 것:
 - 글자 잘림이나 레이아웃 깨짐이 없어야 한다.
 
 ## Edge cases
-### Logged-out user tries to save second match
-- 기존 localStorage 저장 경기 존재 시 안내 필요
-- 덮어쓰기 또는 현재 경기 유지 정책을 명확히 보여줘야 한다
+### Logged-out user tries to save fourth match
+- 기존 localStorage 저장 경기 3개가 존재하면 새 경기 생성을 막는다
+- 경기 관리에서 기존 경기를 삭제한 뒤 새 경기를 만들도록 안내한다
 
 ### Logged-in user exceeds 3 saved matches
 - 새 경기 저장을 막고 안내 메시지를 보여준다

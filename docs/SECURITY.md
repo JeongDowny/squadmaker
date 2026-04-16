@@ -47,7 +47,7 @@
 이 정보는 가장 엄격하게 다뤄야 한다.
 
 ### 3. Local temporary data
-- 비로그인 상태의 경기 1개
+- 비로그인 상태의 경기 최대 3개
 - localStorage에 저장되는 입력값 및 최종 결과
 
 이 정보는 브라우저 환경에 저장되므로 영구 보관을 보장하지 않는다.
@@ -87,7 +87,7 @@
 ## Storage security policy
 
 ### Logged-out users
-- 비로그인 사용자는 localStorage에 경기 1개만 저장할 수 있다.
+- 비로그인 사용자는 localStorage에 경기 3개까지 저장할 수 있다.
 - localStorage 데이터는 보안 저장소가 아니므로 민감 데이터 저장 용도로 사용하지 않는다.
 - localStorage 데이터는 사용자의 브라우저 환경에 종속된다.
 - 비로그인 저장은 임시 편의 기능으로 취급한다.

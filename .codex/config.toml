@@ -2,6 +2,7 @@
 default_scenario_dir = "harness/scenarios"
 default_report_dir = "harness/reports/latest"
 default_fixture_dir = "harness/fixtures"
+default_prompt_log_dir = "docs/prompt-logs"
 
 [workflow]
 planner = ".codex/agents/planner.toml"
@@ -12,5 +13,6 @@ reviewer = ".codex/agents/reviewer.toml"
 validate = "npm run harness:repo"
 scenarios = "npm run harness:scenarios"
 seed = "npm run harness:seed"
+prompt_log = "npm run harness:prompt-log -- --help"
 capture = "npm run harness:capture"
 report = "npm run harness:report"

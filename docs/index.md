@@ -147,6 +147,21 @@ UI review, regression check, release check 가이드
 - 실행 후 결과
 - 회고 / 남은 이슈
 
+## Prompt logs
+
+모든 비사소한 코드 변경의 입력 기록은 `prompt-logs/`에서 관리한다.
+
+형식:
+- 날짜별 파일
+- 파일 안에서 execution log와 같은 PR 단위 섹션 구분
+
+기본 템플릿:
+- 사용자 원문 프롬프트
+- 작업용 정리 프롬프트
+- 제약 / 참고 문서
+- 연결 execution log
+- 비고
+
 ## Generated docs
 
 자동 생성 또는 반자동 생성 문서는 `generated/`에 둔다.

@@ -93,7 +93,7 @@
 - 저장 실패, 브라우저에 임시 저장됨.
 
 ## Logged-out reliability
-비로그인 사용자는 localStorage에 경기 1개만 저장 가능하다.
+비로그인 사용자는 localStorage에 경기 3개까지 저장 가능하다.
 
 원칙:
 - 덮어쓰기 전에 사용자에게 상태를 알린다.

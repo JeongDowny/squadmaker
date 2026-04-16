@@ -36,8 +36,8 @@ type QuarterConfig = {
 };
 
 const recommendationOptions: RecommendationOption[] = [
-  { label: "A", focus: "공평성 우선", score: "86" },
-  { label: "B", focus: "평균 점수 균형", score: "91", active: true },
+  { label: "A", focus: "공평성 우선", score: "91", active: true },
+  { label: "B", focus: "평균 점수 균형", score: "86" },
   { label: "C", focus: "주포지션 일치율", score: "84" },
 ] as const;
 
@@ -47,8 +47,8 @@ const quarterConfigs: QuarterConfig[] = [
     formation: "4-4-2",
     averageScore: 6.6,
     fitRate: "79%",
-    recommendationLabel: "추천안 B",
-    recommendationTone: "초반에 라인을 안정적으로 맞추고 경기 흐름을 차분하게 시작하는 구성",
+    recommendationLabel: "추천안 A",
+    recommendationTone: "출전 분배를 고르게 가져가면서도 수비 라인을 안정적으로 맞춘 구성",
     compareTo: "2Q",
     players: [
       { name: "이안", slot: "ST", top: "12%", left: "40%" },
@@ -69,8 +69,8 @@ const quarterConfigs: QuarterConfig[] = [
     formation: "4-3-3",
     averageScore: 6.8,
     fitRate: "82%",
-    recommendationLabel: "추천안 B",
-    recommendationTone: "중원 점유와 좌우 폭을 같이 살리면서 밸런스를 유지하는 구성",
+    recommendationLabel: "추천안 A",
+    recommendationTone: "핵심 자원을 한 쿼터에 몰지 않고 공평한 출전 흐름을 유지하는 구성",
     compareTo: "1Q",
     players: [
       { name: "하준", slot: "LW", top: "14%", left: "18%" },
@@ -91,8 +91,8 @@ const quarterConfigs: QuarterConfig[] = [
     formation: "4-2-3-1",
     averageScore: 6.7,
     fitRate: "84%",
-    recommendationLabel: "추천안 B",
-    recommendationTone: "2선 연결을 살리면서 뒤쪽 숫자도 놓치지 않는 구성",
+    recommendationLabel: "추천안 A",
+    recommendationTone: "중원 연결을 유지하면서도 전체 출전 쿼터 수 편차를 크게 벌리지 않는 구성",
     compareTo: "4Q",
     players: [
       { name: "이안", slot: "ST", top: "12%", left: "50%" },
@@ -113,8 +113,8 @@ const quarterConfigs: QuarterConfig[] = [
     formation: "3-4-3",
     averageScore: 6.5,
     fitRate: "78%",
-    recommendationLabel: "추천안 B",
-    recommendationTone: "막판에는 전방 숫자를 유지하면서도 교체 자원을 같이 살리는 구성",
+    recommendationLabel: "추천안 A",
+    recommendationTone: "마지막 쿼터까지 출전 기회를 고르게 가져가며 마무리하는 구성",
     compareTo: "3Q",
     players: [
       { name: "하준", slot: "LW", top: "14%", left: "20%" },
@@ -156,8 +156,13 @@ const playerTags: Partial<Record<(typeof participantOrder)[number], PlayerSummar
 };
 
 const quarterOrder: QuarterId[] = ["1Q", "2Q", "3Q", "4Q"];
+const featuredSummaryNames = ["민준", "도윤", "예준", "민성"] as const;
 
 const playerSummaries = buildPlayerSummaries();
+const featuredSummaries = playerSummaries.filter((player) =>
+  featuredSummaryNames.includes(player.name as (typeof featuredSummaryNames)[number])
+);
+const fairnessSummary = buildFairnessSummary(playerSummaries);
 
 export function MockLineupPreview() {
   const [selectedQuarter, setSelectedQuarter] = useState<QuarterId>("1Q");
@@ -169,195 +174,205 @@ export function MockLineupPreview() {
   const deltaLabel = formatDelta(currentQuarter.averageScore, comparisonQuarter.averageScore);
 
   return (
-    <section className="rounded-[32px] border border-emerald-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(240,253,244,0.93))] p-4 shadow-[0_32px_100px_-65px_rgba(15,118,110,0.68)] sm:p-6">
-      <div className="rounded-[28px] border border-slate-200 bg-slate-950/95 p-4 text-slate-100 sm:p-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300">
-              Service Preview
-            </p>
-            <h3 className="mt-2 text-2xl font-semibold text-white">
-              SquadMaker 결과 화면을 그대로 미리 보는 예시
-            </h3>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-              쿼터 버튼을 눌러가며 포메이션과 선발 배치를 비교하고, 오른쪽에서 추천안과
-              전체 출전 요약을 바로 확인할 수 있다.
-            </p>
-          </div>
-
-          <div className="grid gap-3 rounded-[24px] border border-white/10 bg-white/6 p-4 text-sm text-slate-200 sm:grid-cols-3 lg:min-w-[320px] lg:grid-cols-1">
-            <MetricBlock
-              label="현재 쿼터"
-              value={currentQuarter.id}
-              detail={`Formation ${currentQuarter.formation}`}
-            />
-            <MetricBlock
-              label="평균 점수"
-              value={currentQuarter.averageScore.toFixed(1)}
-              detail={`${comparisonQuarter.id} 대비 ${deltaLabel}`}
-            />
-            <MetricBlock
-              label="주포지션 일치율"
-              value={currentQuarter.fitRate}
-              detail={currentQuarter.recommendationTone}
-            />
-          </div>
-        </div>
-
-        <div className="mt-5 flex flex-wrap gap-2">
-          {quarterConfigs.map((tab) => {
-            const active = tab.id === currentQuarter.id;
-
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setSelectedQuarter(tab.id)}
-                className={
-                  active
-                    ? "rounded-full border border-emerald-300 bg-emerald-400/20 px-4 py-2 text-sm font-semibold text-white"
-                    : "rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-white/20 hover:bg-white/8"
-                }
-                aria-pressed={active}
-              >
-                {tab.id}
-                <span className="ml-2 text-xs text-slate-300">{tab.formation}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="mt-5 grid gap-5 xl:grid-cols-[1.45fr_0.9fr]">
-          <div className="overflow-hidden rounded-[28px] border border-emerald-200/20 bg-[radial-gradient(circle_at_top,rgba(167,243,208,0.14),transparent_30%),linear-gradient(180deg,#0f5b41_0%,#0c4a36_50%,#0b3b2d_100%)] p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200/80">
-                  Tactical Board
-                </p>
-                <p className="mt-1 text-sm text-emerald-50">
-                  공격은 위쪽, 골키퍼는 아래쪽에서 시작하는 전술 보드
-                </p>
-              </div>
-              <div className="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-medium text-slate-200">
-                {currentQuarter.formation}
-              </div>
+    <section className="rounded-[32px] border border-emerald-100 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(240,253,244,0.95))] p-4 shadow-[0_32px_100px_-70px_rgba(15,118,110,0.64)] sm:p-5">
+      <div className="rounded-[28px] border border-slate-200 bg-slate-950/96 p-4 text-slate-100 sm:p-5">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300">
+                Service Preview
+              </p>
+              <h3 className="mt-2 text-2xl font-semibold text-white">
+                핵심 장면만 남긴 결과 화면 preview
+              </h3>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
+                쿼터를 바꿔 보며 필드 배치, 추천안, 출전 요약이 함께 읽히는 구조만
+                압축해서 보여준다.
+              </p>
             </div>
 
-            <div className="relative aspect-[5/6] rounded-[24px] border border-white/12 bg-[linear-gradient(180deg,rgba(20,83,45,0.08),rgba(255,255,255,0.02))]">
-              <FieldLines />
-              {currentQuarter.players.map((player) => (
-                <div
-                  key={`${currentQuarter.id}-${player.slot}-${player.name}`}
-                  className="absolute -translate-x-1/2 -translate-y-1/2"
-                  style={{ top: player.top, left: player.left }}
+            <div className="grid gap-2 rounded-[24px] border border-white/10 bg-white/6 p-3 text-sm text-slate-200 sm:grid-cols-3 lg:min-w-[360px] lg:grid-cols-3">
+              <MetricBlock
+                label="현재 쿼터"
+                value={currentQuarter.id}
+                detail={currentQuarter.formation}
+              />
+              <MetricBlock
+                label="평균 점수"
+                value={currentQuarter.averageScore.toFixed(1)}
+                detail={`${comparisonQuarter.id} 대비 ${deltaLabel}`}
+              />
+              <MetricBlock
+                label="주포지션"
+                value={currentQuarter.fitRate}
+                detail="추천안 A 기준"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {quarterConfigs.map((tab) => {
+              const active = tab.id === currentQuarter.id;
+
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setSelectedQuarter(tab.id)}
+                  className={
+                    active
+                      ? "rounded-full border border-emerald-300 bg-emerald-400/18 px-4 py-2 text-sm font-semibold text-white"
+                      : "rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-white/20 hover:bg-white/8"
+                  }
+                  aria-pressed={active}
                 >
-                  <div className="min-w-[42px] rounded-[18px] border border-white/15 bg-white/92 px-1.5 py-1 text-center shadow-[0_14px_30px_-20px_rgba(15,23,42,0.8)] sm:min-w-[62px] sm:rounded-2xl sm:px-2 sm:py-2">
-                    <p className="text-[8px] font-semibold uppercase tracking-[0.12em] text-emerald-700 sm:text-[10px] sm:tracking-[0.16em]">
-                      {player.slot}
-                    </p>
-                    <p className="mt-0.5 text-[10px] font-semibold leading-none text-slate-950 sm:mt-1 sm:text-sm">
-                      {player.name}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  {tab.id}
+                  <span className="ml-2 text-xs text-slate-300">{tab.formation}</span>
+                </button>
+              );
+            })}
           </div>
 
-          <div className="space-y-4">
-            <div className="rounded-[24px] border border-white/10 bg-white/6 p-4">
-              <div className="flex items-center justify-between gap-3">
+          <div className="grid gap-4 xl:grid-cols-[1.38fr_0.92fr]">
+            <div className="overflow-hidden rounded-[28px] border border-emerald-200/20 bg-[radial-gradient(circle_at_top,rgba(167,243,208,0.14),transparent_30%),linear-gradient(180deg,#0f5b41_0%,#0c4a36_50%,#0b3b2d_100%)] p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]">
+              <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">
-                    Recommendation
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-200/80">
+                    Tactical Board
                   </p>
-                  <h4 className="mt-2 text-lg font-semibold text-white">
-                    {currentQuarter.recommendationLabel}을 보는 중
-                  </h4>
+                  <p className="mt-1 text-sm text-emerald-50">
+                    공격은 위쪽, 골키퍼는 아래쪽에서 읽는 전술 보드
+                  </p>
                 </div>
-                <span className="rounded-full border border-emerald-300/40 bg-emerald-400/15 px-3 py-1 text-xs font-semibold text-emerald-200">
-                  balance
-                </span>
+                <div className="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-medium text-slate-200">
+                  {currentQuarter.formation}
+                </div>
               </div>
 
-              <p className="mt-3 text-sm leading-6 text-slate-300">{currentQuarter.recommendationTone}</p>
-
-              <div className="mt-4 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                {recommendationOptions.map((option) => (
+              <div className="relative aspect-[4/5] rounded-[24px] border border-white/12 bg-[linear-gradient(180deg,rgba(20,83,45,0.08),rgba(255,255,255,0.02))] sm:aspect-[5/6]">
+                <FieldLines />
+                {currentQuarter.players.map((player) => (
                   <div
-                    key={option.label}
-                    className={
-                      option.active
-                        ? "rounded-[20px] border border-emerald-300/35 bg-emerald-400/10 px-4 py-3"
-                        : "rounded-[20px] border border-white/10 bg-slate-900/50 px-4 py-3"
-                    }
+                    key={`${currentQuarter.id}-${player.slot}-${player.name}`}
+                    className="absolute -translate-x-1/2 -translate-y-1/2"
+                    style={{ top: player.top, left: player.left }}
                   >
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-semibold text-white">추천안 {option.label}</span>
-                      <span className="text-slate-300">{option.score}점</span>
+                    <div className="min-w-[42px] rounded-[18px] border border-white/15 bg-white/92 px-1.5 py-1 text-center shadow-[0_14px_30px_-20px_rgba(15,23,42,0.8)] sm:min-w-[58px] sm:rounded-2xl sm:px-2 sm:py-2">
+                      <p className="text-[8px] font-semibold uppercase tracking-[0.12em] text-emerald-700 sm:text-[10px] sm:tracking-[0.16em]">
+                        {player.slot}
+                      </p>
+                      <p className="mt-0.5 text-[10px] font-semibold leading-none text-slate-950 sm:mt-1 sm:text-sm">
+                        {player.name}
+                      </p>
                     </div>
-                    <p className="mt-2 text-sm text-slate-300">{option.focus}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="rounded-[24px] border border-white/10 bg-white/6 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">
-                  Quarter Summary
+            <div className="space-y-3">
+              <div className="rounded-[24px] border border-white/10 bg-white/6 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">
+                      Recommendation
+                    </p>
+                    <h4 className="mt-2 text-lg font-semibold text-white">
+                      {currentQuarter.recommendationLabel} 미리보기
+                    </h4>
+                  </div>
+                  <span className="rounded-full border border-emerald-300/40 bg-emerald-400/15 px-3 py-1 text-xs font-semibold text-emerald-200">
+                    fairness
+                  </span>
+                </div>
+
+                <p className="mt-3 text-sm leading-6 text-slate-300">
+                  {currentQuarter.recommendationTone}
                 </p>
-                <span className="rounded-full border border-white/10 bg-white/6 px-3 py-1 text-xs font-medium text-slate-300">
-                  전체 선수 {playerSummaries.length}명
-                </span>
+
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  {recommendationOptions.map((option) => (
+                    <div
+                      key={option.label}
+                      className={
+                        option.active
+                          ? "rounded-[18px] border border-emerald-300/35 bg-emerald-400/10 px-3 py-3"
+                          : "rounded-[18px] border border-white/10 bg-slate-900/50 px-3 py-3"
+                      }
+                    >
+                      <div className="flex items-center justify-between gap-2 text-xs">
+                        <span className="font-semibold text-white">추천안 {option.label}</span>
+                        <span className="text-slate-300">{option.score}</span>
+                      </div>
+                      <p className="mt-2 text-xs leading-5 text-slate-300">{option.focus}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-1">
-                {playerSummaries.map((player) => (
-                  <div
-                    key={player.name}
-                    className="rounded-[18px] border border-white/8 bg-slate-900/45 px-4 py-3"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-semibold text-white">{player.name}</p>
-                        <p className="mt-1 text-xs text-slate-400">
-                          총 {player.appearances.length}쿼터 출전
-                        </p>
-                      </div>
-                      {player.tag ? (
-                        <span
-                          className={
-                            player.tag === "출전 부족"
-                              ? "rounded-full border border-rose-300/30 bg-rose-400/12 px-3 py-1 text-xs font-semibold text-rose-200"
-                              : "rounded-full border border-emerald-300/30 bg-emerald-400/12 px-3 py-1 text-xs font-semibold text-emerald-200"
-                          }
-                        >
-                          {player.tag}
-                        </span>
-                      ) : null}
-                    </div>
+              <div className="rounded-[24px] border border-white/10 bg-white/6 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">
+                    Quarter Summary
+                  </p>
+                  <span className="rounded-full border border-white/10 bg-white/6 px-3 py-1 text-xs font-medium text-slate-300">
+                    전체 선수 {playerSummaries.length}명 추적
+                  </span>
+                </div>
 
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {quarterOrder.map((quarter) => {
-                        const active = player.appearances.includes(quarter);
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  <SummaryMetric label="평균 출전" value={fairnessSummary.averageAppearances} />
+                  <SummaryMetric label="2쿼터 이하" value={fairnessSummary.underplayedCount} />
+                  <SummaryMetric label="GK 고정" value={fairnessSummary.fixedGoalkeepers} />
+                </div>
 
-                        return (
+                <div className="mt-4 space-y-2.5">
+                  {featuredSummaries.map((player) => (
+                    <div
+                      key={player.name}
+                      className="rounded-[18px] border border-white/8 bg-slate-900/45 px-4 py-3"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-white">{player.name}</p>
+                          <p className="mt-1 text-xs text-slate-400">
+                            총 {player.appearances.length}쿼터 출전
+                          </p>
+                        </div>
+                        {player.tag ? (
                           <span
-                            key={`${player.name}-${quarter}`}
                             className={
-                              active
-                                ? "rounded-full border border-emerald-300/30 bg-emerald-400/12 px-3 py-1 text-xs font-semibold text-emerald-200"
-                                : "rounded-full border border-white/8 bg-white/4 px-3 py-1 text-xs font-medium text-slate-500"
+                              player.tag === "출전 부족"
+                                ? "rounded-full border border-rose-300/30 bg-rose-400/12 px-3 py-1 text-xs font-semibold text-rose-200"
+                                : "rounded-full border border-emerald-300/30 bg-emerald-400/12 px-3 py-1 text-xs font-semibold text-emerald-200"
                             }
                           >
-                            {quarter}
+                            {player.tag}
                           </span>
-                        );
-                      })}
+                        ) : null}
+                      </div>
+
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {quarterOrder.map((quarter) => {
+                          const active = player.appearances.includes(quarter);
+
+                          return (
+                            <span
+                              key={`${player.name}-${quarter}`}
+                              className={
+                                active
+                                  ? "rounded-full border border-emerald-300/30 bg-emerald-400/12 px-3 py-1 text-xs font-semibold text-emerald-200"
+                                  : "rounded-full border border-white/8 bg-white/4 px-3 py-1 text-xs font-medium text-slate-500"
+                              }
+                            >
+                              {quarter}
+                            </span>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -379,8 +394,17 @@ function MetricBlock({
   return (
     <div className="rounded-[20px] border border-white/8 bg-slate-900/55 px-4 py-3">
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{label}</p>
-      <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
+      <p className="mt-2 text-xl font-semibold text-white">{value}</p>
       <p className="mt-1 text-xs text-slate-400">{detail}</p>
+    </div>
+  );
+}
+
+function SummaryMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[18px] border border-white/8 bg-slate-900/45 px-4 py-3">
+      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">{label}</p>
+      <p className="mt-2 text-lg font-semibold text-white">{value}</p>
     </div>
   );
 }
@@ -424,4 +448,17 @@ function formatDelta(current: number, comparison: number) {
   const sign = delta > 0 ? "+" : "";
 
   return `${sign}${delta.toFixed(1)}`;
+}
+
+function buildFairnessSummary(players: PlayerSummary[]) {
+  const totalAppearances = players.reduce((sum, player) => sum + player.appearances.length, 0);
+  const averageAppearances = (totalAppearances / players.length).toFixed(1);
+  const underplayedCount = players.filter((player) => player.appearances.length <= 2).length;
+  const fixedGoalkeepers = players.filter((player) => player.tag === "GK 고정").length;
+
+  return {
+    averageAppearances: `${averageAppearances}쿼터`,
+    underplayedCount: `${underplayedCount}명`,
+    fixedGoalkeepers: `${fixedGoalkeepers}명`,
+  };
 }
