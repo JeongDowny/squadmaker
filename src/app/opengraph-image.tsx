@@ -4,7 +4,6 @@ export const alt = "SquadMaker — 경기 전 선발 배치를 5분 안에";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-/* 4-2-3-1 포메이션 선수 위치 (필드 내 상대 좌표, 공격방향=위) */
 const PLAYERS: { abbr: string; pos: string; x: number; y: number; gk?: boolean }[] = [
   { abbr: "임", pos: "ST",  x: 50,  y: 10 },
   { abbr: "윤", pos: "LAM", x: 18,  y: 28 },
@@ -19,7 +18,12 @@ const PLAYERS: { abbr: string; pos: string; x: number; y: number; gk?: boolean }
   { abbr: "박", pos: "GK",  x: 50,  y: 85, gk: true },
 ];
 
-export default function OGImage() {
+export default async function OGImage() {
+  // 한국어 렌더링을 위해 Noto Sans KR Bold 폰트 로드
+  const fontBold = await fetch(
+    "https://fonts.gstatic.com/s/notosanskr/v36/PbyxFmXiEBPT4ITbgNA5Cgms3VYcOA-vvnIzzuoyeLTq8H4hfeE.woff2"
+  ).then((res) => res.arrayBuffer());
+
   return new ImageResponse(
     (
       <div
@@ -28,7 +32,7 @@ export default function OGImage() {
           height: 630,
           background: "#050505",
           display: "flex",
-          fontFamily: "system-ui, -apple-system, sans-serif",
+          fontFamily: "'Noto Sans KR', system-ui, sans-serif",
           position: "relative",
           overflow: "hidden",
         }}
@@ -37,12 +41,12 @@ export default function OGImage() {
         <div
           style={{
             position: "absolute",
-            width: 600,
-            height: 600,
+            width: 700,
+            height: 700,
             borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(22,163,74,0.18) 0%, transparent 70%)",
-            top: -100,
-            right: 200,
+            background: "radial-gradient(circle, rgba(22,163,74,0.15) 0%, transparent 65%)",
+            top: -150,
+            right: 150,
             display: "flex",
           }}
         />
@@ -58,14 +62,7 @@ export default function OGImage() {
           }}
         >
           {/* 로고 */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-              marginBottom: 36,
-            }}
-          >
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 40 }}>
             <div
               style={{
                 width: 52,
@@ -80,68 +77,43 @@ export default function OGImage() {
             >
               ⚽
             </div>
-            <span
-              style={{
-                fontSize: 36,
-                fontWeight: 800,
-                color: "#ffffff",
-                letterSpacing: "-0.04em",
-              }}
-            >
+            <span style={{ fontSize: 38, fontWeight: 700, color: "#ffffff", letterSpacing: "-0.02em" }}>
               SquadMaker
             </span>
           </div>
 
-          {/* 태그라인 — 자식이 여러 개이므로 display: flex 필수 */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              fontSize: 52,
-              fontWeight: 900,
-              color: "#ffffff",
-              lineHeight: 1.15,
-              letterSpacing: "-0.04em",
-              marginBottom: 24,
-            }}
-          >
-            <span>경기 전 선발 배치,</span>
-            <div style={{ display: "flex", gap: 12 }}>
-              <span style={{ color: "#4ade80" }}>5분 안에</span>
-              <span>완성</span>
+          {/* 태그라인 — 줄별로 분리 */}
+          <div style={{ display: "flex", flexDirection: "column", marginBottom: 24, gap: 4 }}>
+            <span style={{ fontSize: 54, fontWeight: 700, color: "#ffffff", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
+              경기 전 선발 배치,
+            </span>
+            <div style={{ display: "flex", gap: 14, alignItems: "baseline" }}>
+              <span style={{ fontSize: 54, fontWeight: 700, color: "#4ade80", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
+                5분 안에
+              </span>
+              <span style={{ fontSize: 54, fontWeight: 700, color: "#ffffff", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
+                완성
+              </span>
             </div>
           </div>
 
-          {/* 서브 */}
-          <span
-            style={{
-              fontSize: 22,
-              color: "rgba(255,255,255,0.5)",
-              lineHeight: 1.6,
-              maxWidth: 440,
-            }}
-          >
-            쿼터별 포메이션 선택 → 공평한 출전 분배 자동 계산 → PNG 공유
+          {/* 서브텍스트 */}
+          <span style={{ fontSize: 20, color: "rgba(255,255,255,0.45)", lineHeight: 1.6, marginBottom: 36 }}>
+            쿼터별 포메이션 선택 → 공평한 출전 분배 → PNG 공유
           </span>
 
           {/* 배지 */}
-          <div
-            style={{
-              display: "flex",
-              gap: 12,
-              marginTop: 36,
-            }}
-          >
+          <div style={{ display: "flex", gap: 10 }}>
             {["출전 균등 분배", "포지션 적합성", "PNG 내보내기"].map((label) => (
               <div
                 key={label}
                 style={{
                   display: "flex",
-                  background: "rgba(22,163,74,0.12)",
-                  border: "1px solid rgba(22,163,74,0.3)",
+                  background: "rgba(22,163,74,0.14)",
+                  border: "1px solid rgba(22,163,74,0.35)",
                   borderRadius: 9999,
                   padding: "8px 18px",
-                  fontSize: 16,
+                  fontSize: 15,
                   color: "#4ade80",
                   fontWeight: 600,
                 }}
@@ -155,12 +127,12 @@ export default function OGImage() {
         {/* 오른쪽 전술 보드 */}
         <div
           style={{
-            width: 340,
-            margin: "40px 60px 40px 0",
-            borderRadius: 20,
+            width: 330,
+            margin: "44px 64px 44px 0",
+            borderRadius: 18,
             overflow: "hidden",
-            border: "1px solid rgba(255,255,255,0.08)",
-            background: "rgba(255,255,255,0.02)",
+            border: "1px solid rgba(255,255,255,0.1)",
+            background: "rgba(255,255,255,0.03)",
             display: "flex",
             flexDirection: "column",
             flexShrink: 0,
@@ -173,36 +145,25 @@ export default function OGImage() {
               alignItems: "center",
               gap: 6,
               padding: "12px 16px",
-              borderBottom: "1px solid rgba(255,255,255,0.06)",
+              borderBottom: "1px solid rgba(255,255,255,0.07)",
+              background: "rgba(0,0,0,0.3)",
             }}
           >
             {["#ff5f56", "#ffbd2e", "#27c93f"].map((c) => (
               <div
                 key={c}
-                style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: "50%",
-                  background: c,
-                  display: "flex",
-                }}
+                style={{ width: 10, height: 10, borderRadius: "50%", background: c, display: "flex" }}
               />
             ))}
-            <div
-              style={{
-                flex: 1,
-                display: "flex",
-                justifyContent: "center",
-              }}
-            >
+            <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
               <div
                 style={{
                   display: "flex",
-                  background: "rgba(255,255,255,0.05)",
-                  borderRadius: 6,
+                  background: "rgba(255,255,255,0.06)",
+                  borderRadius: 5,
                   padding: "3px 12px",
                   fontSize: 11,
-                  color: "rgba(255,255,255,0.3)",
+                  color: "rgba(255,255,255,0.35)",
                 }}
               >
                 4-2-3-1
@@ -214,7 +175,7 @@ export default function OGImage() {
           <div
             style={{
               flex: 1,
-              background: "linear-gradient(180deg, #1b5e2b 0%, #1e6b31 50%, #1b5e2b 100%)",
+              background: "linear-gradient(180deg, #1a5c29 0%, #1e6b31 50%, #1a5c29 100%)",
               position: "relative",
               display: "flex",
             }}
@@ -223,11 +184,11 @@ export default function OGImage() {
             <div
               style={{
                 position: "absolute",
-                left: "5%",
-                right: "5%",
+                left: "6%",
+                right: "6%",
                 top: "50%",
                 height: 1,
-                background: "rgba(255,255,255,0.2)",
+                background: "rgba(255,255,255,0.18)",
                 display: "flex",
               }}
             />
@@ -235,19 +196,19 @@ export default function OGImage() {
             <div
               style={{
                 position: "absolute",
-                width: 50,
-                height: 50,
+                width: 48,
+                height: 48,
                 borderRadius: "50%",
-                border: "1px solid rgba(255,255,255,0.2)",
+                border: "1px solid rgba(255,255,255,0.18)",
                 top: "50%",
                 left: "50%",
-                marginTop: -25,
-                marginLeft: -25,
+                marginTop: -24,
+                marginLeft: -24,
                 display: "flex",
               }}
             />
 
-            {/* 선수 배치 */}
+            {/* 선수 마커 */}
             {PLAYERS.map((p) => (
               <div
                 key={p.abbr + p.pos}
@@ -264,20 +225,16 @@ export default function OGImage() {
               >
                 <div
                   style={{
-                    width: 26,
-                    height: 26,
+                    width: 24,
+                    height: 24,
                     borderRadius: "50%",
-                    background: p.gk
-                      ? "rgba(250,204,21,0.95)"
-                      : "rgba(255,255,255,0.95)",
-                    border: p.gk
-                      ? "2px solid rgba(161,98,7,0.8)"
-                      : "2px solid rgba(22,163,74,0.8)",
+                    background: p.gk ? "rgba(250,204,21,0.95)" : "rgba(255,255,255,0.95)",
+                    border: p.gk ? "2px solid rgba(161,98,7,0.8)" : "2px solid rgba(22,163,74,0.8)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: 9,
-                    fontWeight: 800,
+                    fontSize: 8,
+                    fontWeight: 700,
                     color: p.gk ? "#713f12" : "#155728",
                   }}
                 >
@@ -285,9 +242,9 @@ export default function OGImage() {
                 </div>
                 <span
                   style={{
-                    fontSize: 8,
+                    fontSize: 7,
                     fontWeight: 600,
-                    color: "rgba(255,255,255,0.9)",
+                    color: "rgba(255,255,255,0.85)",
                     whiteSpace: "nowrap",
                   }}
                 >
@@ -304,9 +261,9 @@ export default function OGImage() {
             position: "absolute",
             bottom: 28,
             left: 80,
-            fontSize: 16,
-            color: "rgba(255,255,255,0.25)",
-            letterSpacing: "0.04em",
+            fontSize: 15,
+            color: "rgba(255,255,255,0.22)",
+            letterSpacing: "0.05em",
           }}
         >
           squadmaker.vercel.app
@@ -315,6 +272,14 @@ export default function OGImage() {
     ),
     {
       ...size,
+      fonts: [
+        {
+          name: "Noto Sans KR",
+          data: fontBold,
+          style: "normal",
+          weight: 700,
+        },
+      ],
     }
   );
 }
